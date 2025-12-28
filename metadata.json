@@ -1,0 +1,8 @@
+{
+  "name": "LeadGen AI Pro",
+  "description": "An all-in-one AI-powered CRM and sales automation platform featuring LinkedIn integration, automated campaigns, and a real-time voice assistant.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
