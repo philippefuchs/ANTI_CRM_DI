@@ -17,6 +17,7 @@ type View = 'dashboard' | 'database' | 'members' | 'campaigns' | 'voice' | 'imag
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<View>(isSupabaseConfigured() ? 'dashboard' : 'settings');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [isLogoSyncing, setIsLogoSyncing] = useState(false);
   const [appLogo, setAppLogo] = useState<string | null>(null);
@@ -212,8 +213,17 @@ const App: React.FC = () => {
   const currentLabel = navItems.find(item => item.id === currentView)?.label || currentView;
 
   return (
-    <div className="flex h-screen bg-[#F0F4F8] overflow-hidden font-sans text-slate-800">
-      <aside className="w-80 bg-white/80 backdrop-blur-xl border-r border-slate-200/60 flex flex-col shrink-0 z-20 shadow-[-20px_0_50px_rgba(0,0,0,0.05)]">
+    <div className="flex h-screen bg-[#F0F4F8] overflow-hidden font-sans text-slate-800 relative">
+      {/* Mobile Overlay */}
+      {isMobileMenuOpen && (
+        <div
+          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-30 lg:hidden transition-all duration-500"
+          onClick={() => setIsMobileMenuOpen(false)}
+        ></div>
+      )}
+
+      <aside className={`fixed lg:relative lg:flex w-80 bg-white/80 backdrop-blur-xl border-r border-slate-200/60 flex flex-col shrink-0 z-40 shadow-[-20px_0_50px_rgba(0,0,0,0.05)] transition-all duration-500 h-full ${isMobileMenuOpen ? 'left-0' : '-left-80 lg:left-0'
+        }`}>
         <div className="p-8">
           <div className="flex flex-col gap-6">
             <div className="bg-gradient-to-tr from-indigo-600 to-violet-600 p-2.5 rounded-[32px] shadow-2xl shadow-indigo-500/30 rotate-1 w-24 h-24 flex items-center justify-center overflow-hidden border border-white/20 self-start">
@@ -239,10 +249,13 @@ const App: React.FC = () => {
             return (
               <button
                 key={item.id}
-                onClick={() => setCurrentView(item.id as View)}
+                onClick={() => {
+                  setCurrentView(item.id as View);
+                  setIsMobileMenuOpen(false);
+                }}
                 className={`w-full flex items-center gap-5 px-6 py-4.5 rounded-2xl transition-all duration-400 group relative ${isActive
-                    ? 'bg-white shadow-[0_10px_30px_rgba(0,0,0,0.08)] border border-slate-100'
-                    : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50/50'
+                  ? 'bg-white shadow-[0_10px_30px_rgba(0,0,0,0.08)] border border-slate-100'
+                  : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50/50'
                   }`}
               >
                 {isActive && (
@@ -279,25 +292,31 @@ const App: React.FC = () => {
       </aside>
 
       <main className="flex-1 flex flex-col overflow-hidden">
-        <header className="h-24 px-12 flex items-center justify-between bg-white/40 backdrop-blur-md border-b border-white/20 shrink-0 z-10">
-          <div className="flex items-center gap-6">
-            <div className="w-3 h-3 rounded-full bg-indigo-500 animate-pulse"></div>
-            <h2 className="text-[16px] font-black text-slate-900 uppercase tracking-[0.5em] italic leading-none">{currentLabel}</h2>
+        <header className="h-20 lg:h-24 px-6 lg:px-12 flex items-center justify-between bg-white/40 backdrop-blur-md border-b border-white/20 shrink-0 z-10">
+          <div className="flex items-center gap-4 lg:gap-6">
+            <button
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="lg:hidden p-3 bg-white text-slate-600 rounded-xl border border-slate-200 shadow-sm active:scale-90 transition-all"
+            >
+              <Zap size={20} className="text-indigo-600" />
+            </button>
+            <div className="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-pulse hidden sm:block"></div>
+            <h2 className="text-[13px] lg:text-[16px] font-black text-slate-900 uppercase tracking-[0.3em] lg:tracking-[0.5em] italic leading-none truncate">{currentLabel}</h2>
           </div>
-          <div className="flex items-center gap-8">
-            <div className="flex flex-col items-end">
+          <div className="flex items-center gap-4 lg:gap-8">
+            <div className="hidden sm:flex flex-col items-end">
               <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] italic">Network Status</p>
               <p className="text-[11px] font-black text-emerald-600 uppercase italic flex items-center gap-2"><div className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></div> Optimal Node</p>
             </div>
-            <div className="h-10 w-[1px] bg-slate-200/50"></div>
-            <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center shadow-xl shadow-slate-200/50 border border-slate-100 group cursor-pointer active:scale-95 transition-all overflow-hidden relative">
+            <div className="h-8 lg:h-10 w-[1px] bg-slate-200/50 hidden sm:block"></div>
+            <div className="w-10 lg:w-12 h-10 lg:h-12 rounded-xl lg:rounded-2xl bg-white flex items-center justify-center shadow-xl shadow-slate-200/50 border border-slate-100 group cursor-pointer active:scale-95 transition-all overflow-hidden relative">
               <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500 to-violet-500 opacity-0 group-hover:opacity-10 transition-opacity"></div>
-              <Activity size={20} className="text-indigo-500" />
+              <Activity size={18} className="text-indigo-500" />
             </div>
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto custom-scrollbar p-8">
+        <div className="flex-1 overflow-y-auto custom-scrollbar p-4 lg:p-8">
           <div className="max-w-[1600px] mx-auto h-full">
             {currentView === 'dashboard' && <Dashboard />}
             {currentView === 'scanner' && <CardScanner />}
