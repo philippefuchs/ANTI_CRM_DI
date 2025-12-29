@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
-  BarChart3, Settings, Mail, Mic, Image as ImageIcon, Cpu, Activity, RefreshCw, Cloud, Link2, ShieldAlert, Copy, Save, Database, Upload, Trash2, HelpCircle, ExternalLink, AlertCircle, Check, Terminal, Code, Users, FileSpreadsheet, Zap, Scan, Key, Palette, Sparkles, Globe, BookOpen, Send, GitMerge, TrendingUp, FileText
+  BarChart3, Settings, Mail, Mic, Image as ImageIcon, Cpu, Activity, RefreshCw, Cloud, Link2, ShieldAlert, Copy, Save, Database, Upload, Trash2, HelpCircle, ExternalLink, AlertCircle, Check, Terminal, Code, Users, FileSpreadsheet, Zap, Scan, Key, Palette, Sparkles, Globe, BookOpen, Send, GitMerge, TrendingUp, FileText, Calendar, X
 } from 'lucide-react';
 import Dashboard from './components/Dashboard';
 import ContactManager from './components/ContactManager';
@@ -14,17 +14,21 @@ import CardScanner from './components/CardScanner';
 import TemplateManager from './components/TemplateManager';
 import DuplicateManager from './components/DuplicateManager';
 import PipelineManager from './components/PipelineManager';
+import CalendarManager from './components/CalendarManager';
+import { checkUpcomingReminders, Reminder } from './services/reminderService';
 import { supabase, isSupabaseConfigured, saveSupabaseConfig } from './services/supabase';
 
-type View = 'dashboard' | 'database' | 'members' | 'campaigns' | 'voice' | 'images' | 'reporting' | 'enricher' | 'scanner' | 'settings' | 'templates' | 'duplicates' | 'pipeline';
+type View = 'dashboard' | 'database' | 'members' | 'campaigns' | 'voice' | 'images' | 'reporting' | 'enricher' | 'scanner' | 'settings' | 'templates' | 'duplicates' | 'pipeline' | 'calendar';
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<View>(isSupabaseConfigured() ? 'dashboard' : 'settings');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [isLogoSyncing, setIsLogoSyncing] = useState(false);
+  const [activeReminders, setActiveReminders] = useState<Reminder[]>([]);
   const [appLogo, setAppLogo] = useState<string | null>(null);
   const [tempLogoUrl, setTempLogoUrl] = useState('');
+  const [activeVideo, setActiveVideo] = useState<{ title: string; url: string } | null>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
 
   const defaultUrl = 'https://kdmdxljdegphjfgbxddd.supabase.co';
@@ -117,6 +121,21 @@ const App: React.FC = () => {
     loadGlobalConfig();
   }, [loadGlobalConfig]);
 
+  useEffect(() => {
+    if (!isSupabaseConfigured()) return;
+
+    const runCheck = async () => {
+      const newReminders = await checkUpcomingReminders();
+      if (newReminders.length > 0) {
+        setActiveReminders(prev => [...prev, ...newReminders]);
+      }
+    };
+
+    runCheck();
+    const interval = setInterval(runCheck, 60000); // Check every minute
+    return () => clearInterval(interval);
+  }, []);
+
   const saveEmailConfig = async () => {
     if (!isSupabaseConfigured()) return;
     setIsSyncing(true);
@@ -208,6 +227,7 @@ const App: React.FC = () => {
     { id: 'members', label: 'Membres', icon: <Users size={20} />, color: 'from-emerald-400 to-teal-600' },
     { id: 'duplicates', label: 'Doublons', icon: <GitMerge size={20} />, color: 'from-amber-500 to-orange-600' },
     { id: 'pipeline', label: 'Pipeline', icon: <TrendingUp size={20} />, color: 'from-violet-500 to-purple-600' },
+    { id: 'calendar', label: 'Calendrier', icon: <Calendar size={20} />, color: 'from-indigo-500 to-violet-600' },
     { id: 'campaigns', label: 'Campagnes', icon: <Mail size={20} />, color: 'from-rose-500 to-pink-600' },
     { id: 'templates', label: 'E-mail Library', icon: <BookOpen size={20} />, color: 'from-amber-400 to-orange-500' },
     { id: 'reporting', label: 'Export', icon: <FileSpreadsheet size={20} />, color: 'from-slate-400 to-slate-600' },
@@ -220,6 +240,78 @@ const App: React.FC = () => {
 
   return (
     <div className="flex h-screen bg-[#F0F4F8] overflow-hidden font-sans text-slate-800 relative">
+      {/* Video Player Modal */}
+      {activeVideo && (
+        <div className="fixed inset-0 z-[600] flex items-center justify-center p-4 lg:p-12">
+          <div className="absolute inset-0 bg-slate-900/90 backdrop-blur-xl transition-all" onClick={() => setActiveVideo(null)}></div>
+          <div className="relative w-full max-w-6xl aspect-video bg-black rounded-[40px] shadow-[0_0_100px_rgba(0,0,0,0.5)] overflow-hidden border border-white/10 animate-in zoom-in-95 duration-300">
+            <button
+              onClick={() => setActiveVideo(null)}
+              className="absolute top-8 right-8 z-10 p-4 bg-white/10 hover:bg-white/20 text-white rounded-2xl backdrop-blur-md border border-white/10 transition-all active:scale-90"
+            >
+              <X size={24} />
+            </button>
+            <div className="absolute top-8 left-8 z-10 px-6 py-3 bg-indigo-500 text-white rounded-2xl backdrop-blur-md border border-white/20 shadow-xl">
+              <p className="text-[10px] font-black uppercase tracking-widest italic">{activeVideo.title}</p>
+            </div>
+            <video
+              controls
+              autoPlay
+              className="w-full h-full object-contain"
+              onError={(e) => {
+                const target = e.target as HTMLVideoElement;
+                // Only show error message if all sources failed
+                if (target.networkState === 3) { // NETWORK_NO_SOURCE
+                  target.style.display = 'none';
+                  const parent = target.parentElement;
+                  if (parent && !parent.querySelector('.video-error-msg')) {
+                    const errorMsg = document.createElement('div');
+                    errorMsg.className = 'absolute inset-0 flex flex-col items-center justify-center text-center p-12 bg-slate-900 video-error-msg';
+                    errorMsg.innerHTML = `
+                      <div class="p-6 bg-rose-500/10 text-rose-500 rounded-[32px] mb-6 border border-rose-500/20">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shield-alert"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1-1z"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+                      </div>
+                      <h4 class="text-2xl font-black uppercase italic text-white mb-2">Vidéo Introuvable</h4>
+                      <p class="text-slate-400 text-sm font-bold uppercase tracking-widest leading-relaxed max-w-md">
+                        Le fichier "${activeVideo.url}" n'est pas encore disponible dans le dossier public/videos/
+                      </p>
+                    `;
+                    parent.appendChild(errorMsg);
+                  }
+                }
+              }}
+            >
+              <source src={activeVideo.url.replace('.mp4', '.webp')} type="video/webp" />
+              <source src={activeVideo.url} type="video/mp4" />
+            </video>
+          </div>
+        </div>
+      )}
+
+      {/* Reminder Toasts */}
+      <div className="fixed top-6 right-6 z-[500] pointer-events-none flex flex-col gap-4">
+        {activeReminders.map(reminder => (
+          <div key={reminder.id} className="pointer-events-auto bg-slate-900 text-white p-6 rounded-[32px] shadow-2xl animate-in slide-in-from-right duration-500 max-w-sm border border-white/10 flex items-start gap-4 ring-1 ring-white/20">
+            <div className="p-3 bg-indigo-500 rounded-2xl">
+              <Zap size={20} className="text-white" />
+            </div>
+            <div className="flex-1">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400 mb-1 italic">Rappel CRM</p>
+              <h4 className="text-sm font-black italic uppercase leading-tight mb-1">{reminder.title}</h4>
+              <p className="text-[10px] font-bold text-slate-400">
+                {reminder.contactName && `Avec ${reminder.contactName} • `}
+                {reminder.startTime.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+              </p>
+              <button
+                onClick={() => setActiveReminders(prev => prev.filter(r => r.id !== reminder.id))}
+                className="mt-4 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl text-[8px] font-black uppercase tracking-widest transition-all"
+              >
+                Ignorer
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
       {/* Mobile Overlay */}
       {isMobileMenuOpen && (
         <div
@@ -331,6 +423,7 @@ const App: React.FC = () => {
             {currentView === 'members' && <ContactManager category="member" />}
             {currentView === 'duplicates' && <DuplicateManager />}
             {currentView === 'pipeline' && <PipelineManager />}
+            {currentView === 'calendar' && <CalendarManager />}
             {currentView === 'campaigns' && <CampaignManager />}
             {currentView === 'templates' && <TemplateManager />}
             {currentView === 'reporting' && <ReportingManager />}
@@ -556,15 +649,74 @@ const App: React.FC = () => {
                           Timeline visuelle de toutes les interactions (emails, appels, réunions, notes). Accessible depuis le profil de chaque contact pour un suivi complet.
                         </p>
                       </div>
+                      <div className="space-y-4">
+                        <h4 className="text-indigo-400 text-[12px] font-black uppercase tracking-widest italic flex items-center gap-3">
+                          <Calendar size={18} /> 08. Agenda & Rappels
+                        </h4>
+                        <p className="text-slate-400 text-sm font-medium leading-relaxed">
+                          Planifiez vos rendez-vous et recevez des <b className="text-white">notifications intelligentes</b>. L'Agenda est partagé entre la vue Calendrier globale et les onglets dédiés dans chaque profil contact.
+                        </p>
+                      </div>
                     </div>
                   </div>
+
+                  {/* SECTION VIDEOS DE DEMONSTRATION */}
+                  { false && ( <div className="mt-20 border-t border-slate-800/50 pt-16">
+                    <div className="flex items-center gap-6 mb-12">
+                      <div className="p-4 bg-indigo-500/10 text-indigo-400 rounded-2xl border border-indigo-500/20"><Activity size={24} /></div>
+                      <div>
+                        <h3 className="text-2xl font-black uppercase italic tracking-tight">Vidéos de Démonstration</h3>
+                        <p className="text-slate-500 text-[9px] font-black uppercase tracking-widest mt-1 italic">Exemples de workflows End-to-End</p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <div
+                        onClick={() => setActiveVideo({ title: 'Cycle de Vente Complet', url: '/videos/sales-cycle.mp4' })}
+                        className="group relative aspect-video bg-slate-800 rounded-[32px] border border-slate-700/50 flex items-center justify-center overflow-hidden hover:border-indigo-500/50 transition-all cursor-pointer"
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-transparent group-hover:from-indigo-500/20 transition-all"></div>
+                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all scale-95 group-hover:scale-100">
+                          <div className="w-20 h-20 bg-indigo-500 text-white rounded-full flex items-center justify-center shadow-2xl shadow-indigo-500/40 translate-y-2 group-hover:translate-y-0 transition-transform duration-500">
+                            <ExternalLink size={32} />
+                          </div>
+                        </div>
+                        <div className="relative text-center p-6 group-hover:opacity-20 transition-opacity">
+                          <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-white/10">
+                            <ExternalLink size={20} className="text-indigo-400" />
+                          </div>
+                          <h5 className="text-[11px] font-black uppercase tracking-widest text-indigo-200 mb-2 italic">Tutoriel : Cycle de Vente Complet</h5>
+                          <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest leading-relaxed">Prospect → Enrichissement → Pipeline → RDV</p>
+                        </div>
+                      </div>
+
+                      <div
+                        onClick={() => setActiveVideo({ title: 'IA & Automatisation', url: '/videos/ai-automation.mp4' })}
+                        className="group relative aspect-video bg-slate-800 rounded-[32px] border border-slate-700/50 flex items-center justify-center overflow-hidden hover:border-emerald-500/50 transition-all cursor-pointer"
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-transparent group-hover:from-emerald-500/20 transition-all"></div>
+                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all scale-95 group-hover:scale-100">
+                          <div className="w-20 h-20 bg-emerald-500 text-white rounded-full flex items-center justify-center shadow-2xl shadow-emerald-500/40 translate-y-2 group-hover:translate-y-0 transition-transform duration-500">
+                            <ExternalLink size={32} />
+                          </div>
+                        </div>
+                        <div className="relative text-center p-6 group-hover:opacity-20 transition-opacity">
+                          <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-white/10">
+                            <ExternalLink size={20} className="text-emerald-400" />
+                          </div>
+                          <h5 className="text-[11px] font-black uppercase tracking-widest text-emerald-200 mb-2 italic">IA & Automatisation</h5>
+                          <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest leading-relaxed">Scan de cartes → CRM → Campagnes Automatisées</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div> ) }
                   <div className="mt-16 p-10 bg-slate-800/50 rounded-[40px] border border-slate-700/50 flex flex-col md:flex-row items-center gap-10">
                     <div className="p-6 bg-slate-900 rounded-3xl border border-slate-700 italic text-[11px] font-bold text-slate-400 text-center md:text-left flex-1">
                       Astuce Pro : Exportez vos listes au format <b className="text-indigo-400">CSV</b> depuis l'onglet "Reporting" pour vos comptes-rendus externes.
                     </div>
                     <div className="flex items-center gap-4 px-6 py-4 bg-indigo-500/10 rounded-[24px] border border-indigo-500/20">
                       <Zap size={20} className="text-indigo-400" />
-                      <span className="text-[10px] font-black uppercase tracking-widest text-indigo-200">Version 2.0 Phase 1</span>
+                      <span className="text-[10px] font-black uppercase tracking-widest text-indigo-200">Version 2.0 Stable - Phase 2</span>
                     </div>
                   </div>
                 </div>

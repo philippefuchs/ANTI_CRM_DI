@@ -1,10 +1,9 @@
-
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { Contact, ProspectStatus } from '../types';
 import {
   Plus, Search, Edit2, Trash2, X, Building2, Mail, Linkedin, RefreshCw,
   Check, Phone, Globe, Briefcase, Users, FileText, Trash, MapPin, AlignLeft,
-  Upload, Download, UserPlus, User, Target, Activity, ExternalLink, Info,
+  Upload, Download, UserPlus, Calendar, User, Target, Activity, ExternalLink, Info, Zap,
   Tag as TagIcon, Hash, Link as LinkIcon, Database, ArrowUpRight, FileSpreadsheet, Clock
 } from 'lucide-react';
 import { supabase, isSupabaseConfigured } from '../services/supabase';
@@ -21,9 +20,11 @@ const ContactManager: React.FC<ContactManagerProps> = ({ category }) => {
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
   const [loading, setLoading] = useState(false);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'info' | 'history'>('info');
+  const [activeTab, setActiveTab] = useState<'info' | 'history' | 'agenda'>('info');
   const [showImportModal, setShowImportModal] = useState(false);
   const [importFile, setImportFile] = useState<File | null>(null);
+  const [contactEvents, setContactEvents] = useState<any[]>([]);
+  const [loadingEvents, setLoadingEvents] = useState(false);
 
   const formRef = useRef<HTMLFormElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -38,9 +39,9 @@ const ContactManager: React.FC<ContactManagerProps> = ({ category }) => {
     if (typeof err === 'object') {
       const parts = [];
       if (err.message) parts.push(err.message);
-      if (err.hint) parts.push(`Indice: ${err.hint}`);
-      if (err.details) parts.push(`Détails: ${err.details}`);
-      if (err.code) parts.push(`Code: ${err.code}`);
+      if (err.hint) parts.push(`Indice: ${err.hint} `);
+      if (err.details) parts.push(`Détails: ${err.details} `);
+      if (err.code) parts.push(`Code: ${err.code} `);
 
       if (parts.length > 0) return parts.join('\n');
 
@@ -102,6 +103,27 @@ const ContactManager: React.FC<ContactManagerProps> = ({ category }) => {
     fetchContacts();
   }, [fetchContacts]);
 
+  useEffect(() => {
+    const fetchContactEvents = async () => {
+      if (!editingContact || editingContact.id === 'new' || activeTab !== 'agenda' || !supabase) return;
+      setLoadingEvents(true);
+      try {
+        const { data, error } = await supabase
+          .from('events')
+          .select('*')
+          .eq('contact_id', editingContact.id)
+          .order('start_time', { ascending: true });
+        if (error) throw error;
+        setContactEvents(data || []);
+      } catch (err) {
+        console.error("Error fetching contact events:", err);
+      } finally {
+        setLoadingEvents(false);
+      }
+    };
+    fetchContactEvents();
+  }, [editingContact, activeTab]);
+
   const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!supabase) return;
@@ -151,7 +173,7 @@ const ContactManager: React.FC<ContactManagerProps> = ({ category }) => {
 
       if (columnMatch && columnMatch[1]) {
         const missingColumn = columnMatch[1];
-        console.warn(`Colonne '${missingColumn}' manquante dans Supabase. Retrait du payload.`);
+        console.warn(`Colonne '${missingColumn}' manquante dans Supabase.Retrait du payload.`);
         const nextPayload = { ...payload };
         delete nextPayload[missingColumn];
 
@@ -178,7 +200,7 @@ const ContactManager: React.FC<ContactManagerProps> = ({ category }) => {
     } catch (err: any) {
       console.error("Master Save Error:", err);
       const msg = stringifyError(err);
-      alert(`ERREUR DE SAUVEGARDE :\n\n${msg}`);
+      alert(`ERREUR DE SAUVEGARDE: \n\n${msg} `);
     }
   };
 
@@ -263,7 +285,7 @@ const ContactManager: React.FC<ContactManagerProps> = ({ category }) => {
 
       if (error) throw error;
 
-      alert(`${contacts.length} contact(s) importé(s) avec succès !`);
+      alert(`${contacts.length} contact(s) importé(s) avec succès!`);
       await fetchContacts();
       setShowImportModal(false);
       setImportFile(null);
@@ -431,12 +453,24 @@ const ContactManager: React.FC<ContactManagerProps> = ({ category }) => {
                       Historique
                     </div>
                   </button>
+                  <button
+                    onClick={() => setActiveTab('agenda')}
+                    className={`px-6 py-4 font-black text-xs uppercase tracking-widest transition-all ${activeTab === 'agenda'
+                      ? `text-${themeColor}-600 border-b-4 border-${themeColor}-500`
+                      : 'text-slate-400 hover:text-slate-600'
+                      }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Calendar size={16} />
+                      Agenda
+                    </div>
+                  </button>
                 </div>
               </div>
             )}
 
             {/* Content */}
-            {activeTab === 'info' ? (
+            {activeTab === 'info' && (
               <form ref={formRef} onSubmit={handleSave} className="flex-1 overflow-y-auto p-6 md:p-12 space-y-8 md:space-y-10 custom-scrollbar">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10">
                   <div className="bg-white p-8 md:p-10 rounded-[48px] shadow-sm border border-slate-50 space-y-6 md:space-y-8">
@@ -455,8 +489,8 @@ const ContactManager: React.FC<ContactManagerProps> = ({ category }) => {
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <label className="text-[9px] font-black uppercase text-slate-400 ml-4">Poste Exact</label>
-                      <input name="title" defaultValue={editingContact.title} className="w-full px-6 py-4 bg-slate-50 rounded-[24px] outline-none font-black italic text-sm uppercase" placeholder="DIRECTEUR INNOVATION" />
+                      <label className="text-[9px] font-black uppercase text-slate-400 ml-4">Poste / Titre</label>
+                      <input name="title" defaultValue={editingContact.title} className="w-full px-6 py-4 bg-slate-50 rounded-2xl outline-none font-black italic text-sm uppercase" placeholder="CEO / FONDATEUR" />
                     </div>
                   </div>
 
@@ -510,12 +544,65 @@ const ContactManager: React.FC<ContactManagerProps> = ({ category }) => {
                   <textarea name="notes" defaultValue={editingContact.notes} rows={4} className="w-full px-6 md:px-8 py-4 md:py-6 bg-slate-50 rounded-[32px] outline-none font-medium text-sm border-2 border-transparent focus:border-indigo-100 transition-all resize-none shadow-inner italic" placeholder="NOTES CRITIQUES..." />
                 </div>
               </form>
-            ) : (
+            )}
+
+            {activeTab === 'history' && (
               <div className="flex-1 overflow-y-auto p-6 md:p-12 custom-scrollbar">
                 <InteractionTimeline
                   contactId={editingContact.id}
                   contactName={`${editingContact.firstName} ${editingContact.lastName}`}
                 />
+              </div>
+            )}
+
+            {activeTab === 'agenda' && (
+              <div className="flex-1 overflow-y-auto p-6 md:p-12 space-y-8 custom-scrollbar">
+                <div className="flex items-center justify-between mb-8">
+                  <h4 className="text-xl font-black uppercase italic text-slate-900">Prochains Rendez-vous</h4>
+                  <button
+                    onClick={() => {
+                      // Redirect to main calendar or open a schedule modal
+                      // For now, prompt that they can do it in the main calendar
+                      alert("Désolé, la prise de RDV directe depuis ce modal arrive bientôt ! Utilisez le module 'Calendrier' pour planifier.");
+                    }}
+                    className={`px-6 py-3 bg-gradient-to-r ${gradientClass} text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg italic flex items-center gap-2`}
+                  >
+                    <Plus size={14} strokeWidth={4} /> Planifier
+                  </button>
+                </div>
+
+                {loadingEvents ? (
+                  <div className="flex justify-center py-20">
+                    <RefreshCw className="animate-spin text-slate-300" size={40} />
+                  </div>
+                ) : contactEvents.length > 0 ? (
+                  <div className="space-y-4">
+                    {contactEvents.map(event => (
+                      <div key={event.id} className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm flex items-center justify-between group hover:shadow-xl hover:border-indigo-100 transition-all">
+                        <div className="flex items-center gap-6">
+                          <div className={`p-4 rounded-2xl ${new Date(event.start_time) < new Date() ? 'bg-slate-100 text-slate-400' : 'bg-indigo-50 text-indigo-600'}`}>
+                            <Calendar size={24} />
+                          </div>
+                          <div>
+                            <p className="text-lg font-black italic uppercase text-slate-900">{event.title}</p>
+                            <div className="flex items-center gap-3 mt-1 text-slate-400 text-xs font-bold uppercase tracking-widest">
+                              <div className="flex items-center gap-1"><Clock size={12} /> {new Date(event.start_time).toLocaleDateString('fr-FR')}</div>
+                              <div className="flex items-center gap-1"><Zap size={12} /> {new Date(event.start_time).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</div>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="px-4 py-2 bg-slate-50 rounded-full text-[8px] font-black uppercase tracking-widest text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                          Détails Agenda
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-20 bg-slate-50/50 rounded-[40px] border-2 border-dashed border-slate-100">
+                    <p className="text-xs font-black text-slate-300 uppercase tracking-[0.4em] italic mb-4">Aucun rendez-vous planifié</p>
+                    <button className="text-indigo-600 font-black text-[10px] uppercase tracking-widest underline italic">Fixer un RDV maintenant</button>
+                  </div>
+                )}
               </div>
             )}
 
