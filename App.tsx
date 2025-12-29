@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
-  BarChart3, Settings, Mail, Mic, Image as ImageIcon, Cpu, Activity, RefreshCw, Cloud, Link2, ShieldAlert, Copy, Save, Database, Upload, Trash2, HelpCircle, ExternalLink, AlertCircle, Check, Terminal, Code, Users, FileSpreadsheet, Zap, Scan, Key, Palette, Sparkles, Globe, BookOpen
+  BarChart3, Settings, Mail, Mic, Image as ImageIcon, Cpu, Activity, RefreshCw, Cloud, Link2, ShieldAlert, Copy, Save, Database, Upload, Trash2, HelpCircle, ExternalLink, AlertCircle, Check, Terminal, Code, Users, FileSpreadsheet, Zap, Scan, Key, Palette, Sparkles, Globe, BookOpen, Send
 } from 'lucide-react';
 import Dashboard from './components/Dashboard';
 import ContactManager from './components/ContactManager';
@@ -207,8 +207,8 @@ const App: React.FC = () => {
     { id: 'campaigns', label: 'Campagnes', icon: <Mail size={20} />, color: 'from-rose-500 to-pink-600' },
     { id: 'templates', label: 'E-mail Library', icon: <BookOpen size={20} />, color: 'from-amber-400 to-orange-500' },
     { id: 'reporting', label: 'Export', icon: <FileSpreadsheet size={20} />, color: 'from-slate-400 to-slate-600' },
-    { id: 'voice', label: 'IA Voice', icon: <Mic size={20} />, color: 'from-orange-400 to-red-500' },
-    { id: 'images', label: 'Studio', icon: <ImageIcon size={20} />, color: 'from-cyan-400 to-blue-500' },
+    // { id: 'voice', label: 'IA Voice', icon: <Mic size={20} />, color: 'from-orange-400 to-red-500' },
+    // { id: 'images', label: 'Studio', icon: <ImageIcon size={20} />, color: 'from-cyan-400 to-blue-500' },
     { id: 'settings', label: 'Maintenance', icon: <Settings size={20} />, color: 'from-slate-300 to-slate-500' },
   ];
 
@@ -333,152 +333,210 @@ const App: React.FC = () => {
             {currentView === 'settings' && (
               <div className="p-8 max-w-4xl mx-auto space-y-12 pb-24">
                 {/* 1. CLOUD SYNC */}
-                <div className="bg-white/70 backdrop-blur-2xl p-16 rounded-[64px] border border-white shadow-2xl">
-                  <div className="flex items-center gap-8 mb-16">
-                    <div className="p-6 bg-gradient-to-tr from-emerald-400 to-emerald-600 text-white rounded-[32px] shadow-xl shadow-emerald-500/20 rotate-3"><Link2 size={40} /></div>
-                    <div>
-                      <h3 className="text-4xl font-black text-slate-900 uppercase italic tracking-tighter">Backend Cloud</h3>
-                      <p className="text-slate-400 text-[11px] font-black uppercase tracking-[0.5em] mt-3">Supabase Neural Node v14.5</p>
+                <div className="bg-white rounded-[48px] border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.05)] overflow-hidden">
+                  <div className="p-10 border-b border-slate-50 flex items-center justify-between bg-white">
+                    <div className="flex items-center gap-6">
+                      <div className="p-4 bg-emerald-500/10 text-emerald-600 rounded-2xl"><Link2 size={24} /></div>
+                      <div>
+                        <h3 className="text-xl font-black text-slate-900 uppercase italic tracking-tight">Backend Cloud</h3>
+                        <p className="text-slate-400 text-[9px] font-black uppercase tracking-widest mt-1 opacity-60">Supabase Neural Node v15.0</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-600 rounded-full border border-emerald-100 italic text-[10px] font-black uppercase tracking-widest">
+                      <Cloud size={14} /> Ready
                     </div>
                   </div>
                   <form onSubmit={(e) => {
                     e.preventDefault();
                     saveSupabaseConfig(supabaseCreds.url, supabaseCreds.key);
-                  }} className="space-y-12">
-                    <div className="grid grid-cols-1 gap-12">
-                      <div className="space-y-4">
-                        <label className="text-[10px] font-black uppercase text-slate-400 ml-8 tracking-[0.5em]">Project Endpoint</label>
-                        <input value={supabaseCreds.url} onChange={e => setSupabaseCreds({ ...supabaseCreds, url: e.target.value })} className="w-full p-8 bg-slate-50 border border-slate-100 rounded-[32px] outline-none font-black italic text-xl transition-all" placeholder="HTTPS://PROJECT.SUPABASE.CO" />
+                  }} className="p-10 space-y-8 bg-slate-50/30">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <div className="space-y-3">
+                        <label className="text-[10px] font-black uppercase text-slate-500 ml-4 tracking-widest">Project Endpoint</label>
+                        <input value={supabaseCreds.url} onChange={e => setSupabaseCreds({ ...supabaseCreds, url: e.target.value })} className="w-full p-6 bg-white border border-slate-200 rounded-[24px] outline-none font-bold text-sm shadow-sm focus:border-emerald-500 transition-all" placeholder="https://..." />
                       </div>
-                      <div className="space-y-4">
-                        <label className="text-[10px] font-black uppercase text-slate-400 ml-8 tracking-[0.5em]">Master Service Key</label>
-                        <input type="password" value={supabaseCreds.key} onChange={e => setSupabaseCreds({ ...supabaseCreds, key: e.target.value })} className="w-full p-8 bg-slate-50 border border-slate-100 rounded-[32px] outline-none font-black italic text-xl transition-all" placeholder="MASTER-KEY" />
+                      <div className="space-y-3">
+                        <label className="text-[10px] font-black uppercase text-slate-500 ml-4 tracking-widest">Service Key</label>
+                        <input type="password" value={supabaseCreds.key} onChange={e => setSupabaseCreds({ ...supabaseCreds, key: e.target.value })} className="w-full p-6 bg-white border border-slate-200 rounded-[24px] outline-none font-bold text-sm shadow-sm focus:border-emerald-500 transition-all" placeholder="KEY-AES-256" />
                       </div>
                     </div>
-                    <button type="submit" className="w-full py-8 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-[32px] font-black uppercase text-[12px] tracking-[0.4em] shadow-2xl shadow-indigo-500/30 hover:scale-[1.02] transition-all italic flex items-center justify-center gap-4">
-                      <RefreshCw size={24} /> Reconnect Cluster
+                    <button type="submit" className="w-full py-6 bg-slate-900 text-white rounded-[24px] font-black uppercase text-[11px] tracking-widest shadow-xl hover:bg-emerald-600 transition-all active:scale-[0.98] italic flex items-center justify-center gap-3">
+                      <RefreshCw size={18} /> Sync Cluster
                     </button>
                   </form>
                 </div>
 
-                {/* 2. BRAND IDENTITY (Logo Management) */}
-                <div className="bg-white/70 backdrop-blur-2xl p-16 rounded-[64px] border border-white shadow-2xl">
-                  <div className="flex items-center gap-8 mb-16">
-                    <div className="p-6 bg-gradient-to-tr from-fuchsia-500 to-indigo-600 text-white rounded-[32px] shadow-xl shadow-fuchsia-500/20 rotate-3"><Palette size={40} /></div>
+                {/* 2. BRAND IDENTITY */}
+                <div className="bg-white rounded-[48px] border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.05)] overflow-hidden">
+                  <div className="p-10 border-b border-slate-50 flex items-center gap-6 bg-white">
+                    <div className="p-4 bg-indigo-500/10 text-indigo-600 rounded-2xl"><Palette size={24} /></div>
                     <div>
-                      <h3 className="text-4xl font-black text-slate-900 uppercase italic tracking-tighter">Identité de Marque</h3>
-                      <p className="text-slate-400 text-[11px] font-black uppercase tracking-[0.5em] mt-3">Logo & Assets Cloud</p>
+                      <h3 className="text-xl font-black text-slate-900 uppercase italic tracking-tight">Identité de Marque</h3>
+                      <p className="text-slate-400 text-[9px] font-black uppercase tracking-widest mt-1 opacity-60">Logo & Assets Manager</p>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                    <div className="space-y-8">
+                  <div className="p-10 bg-slate-50/30">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
                       <div className="relative group">
-                        <div className="w-full aspect-square bg-slate-50 rounded-[48px] border-4 border-white shadow-inner flex items-center justify-center overflow-hidden transition-all group-hover:shadow-2xl duration-500 p-2">
+                        <div className="w-full aspect-square bg-white rounded-[40px] border border-slate-200 shadow-sm flex items-center justify-center overflow-hidden transition-all group-hover:border-indigo-400 p-4">
                           {appLogo ? (
                             <img src={appLogo} alt="Preview" className="w-full h-full object-contain" />
                           ) : (
-                            <ImageIcon size={64} className="text-slate-200" />
+                            <ImageIcon size={48} className="text-slate-200" />
                           )}
                           {isLogoSyncing && (
-                            <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm flex flex-col items-center justify-center text-white">
-                              <RefreshCw size={40} className="animate-spin mb-4" />
-                              <span className="text-[10px] font-black uppercase tracking-widest">Synchronisation...</span>
+                            <div className="absolute inset-0 bg-white/60 backdrop-blur-sm flex items-center justify-center">
+                              <RefreshCw size={32} className="animate-spin text-indigo-500" />
                             </div>
                           )}
                         </div>
-                        <div className="absolute bottom-6 right-6 flex gap-3">
-                          <button
-                            onClick={() => logoInputRef.current?.click()}
-                            className="p-6 bg-slate-900 text-white rounded-[24px] shadow-2xl hover:bg-indigo-600 transition-all active:scale-90"
-                            title="Uploader un fichier"
-                          >
-                            <Upload size={24} />
-                          </button>
-                        </div>
+                        <button
+                          onClick={() => logoInputRef.current?.click()}
+                          className="absolute -bottom-4 -right-2 p-4 bg-indigo-600 text-white rounded-[20px] shadow-2xl hover:bg-indigo-700 transition-all active:scale-90"
+                        >
+                          <Upload size={18} />
+                        </button>
                         <input type="file" ref={logoInputRef} className="hidden" accept="image/*" onChange={handleLogoUpload} />
                       </div>
-                    </div>
 
-                    <div className="space-y-10">
-                      <div className="space-y-4">
-                        <label className="text-[10px] font-black uppercase text-slate-400 ml-4 tracking-[0.5em]">Lien Supabase du Logo</label>
-                        <div className="flex gap-3">
-                          <div className="relative flex-1">
+                      <div className="md:col-span-2 space-y-8">
+                        <div className="space-y-3">
+                          <label className="text-[10px] font-black uppercase text-slate-500 ml-2 tracking-widest">Lien Supabase du Logo</label>
+                          <div className="flex gap-3">
                             <input
                               value={tempLogoUrl}
                               onChange={(e) => setTempLogoUrl(e.target.value)}
-                              className="w-full p-6 bg-slate-50 border border-slate-100 rounded-[24px] outline-none font-bold text-sm italic pr-12"
-                              placeholder="https://.../storage/v1/object/public/bucket/logo.png"
+                              className="flex-1 p-6 bg-white border border-slate-200 rounded-[24px] outline-none font-bold text-xs italic shadow-sm focus:border-indigo-500 transition-all"
+                              placeholder="https://..."
                             />
-                            <div className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-300"><Globe size={18} /></div>
+                            <button
+                              onClick={() => updateLogo(tempLogoUrl)}
+                              disabled={isLogoSyncing || !tempLogoUrl}
+                              className="px-6 bg-slate-100 text-slate-400 border border-slate-200 rounded-[24px] hover:bg-indigo-50 hover:text-indigo-600 transition-all disabled:opacity-30"
+                            >
+                              <Save size={18} />
+                            </button>
                           </div>
-                          <button
-                            onClick={() => updateLogo(tempLogoUrl)}
-                            disabled={isLogoSyncing || !tempLogoUrl}
-                            className="px-8 bg-indigo-600 text-white rounded-[24px] font-black uppercase text-[10px] italic tracking-widest shadow-lg hover:bg-indigo-700 disabled:opacity-30 transition-all"
-                          >
-                            {isLogoSyncing ? <RefreshCw className="animate-spin" size={16} /> : <Save size={16} />}
-                          </button>
                         </div>
-                        <p className="text-[10px] text-slate-400 font-medium px-4 leading-relaxed">
-                          Copiez le lien public depuis votre **Bucket Supabase** (Storage) pour synchroniser votre identité sur tous vos terminaux.
-                        </p>
-                      </div>
 
-                      <div className="p-8 bg-slate-50 rounded-[40px] border border-slate-100 space-y-4">
-                        <h4 className="text-[11px] font-black uppercase italic text-slate-900 flex items-center gap-2">
-                          <Sparkles size={14} className="text-fuchsia-500" /> Aide au paramétrage
-                        </h4>
-                        <p className="text-[10px] text-slate-500 leading-relaxed font-medium">
-                          Allez dans **Storage &gt; Buckets &gt; [votre bucket]**, cliquez sur votre logo, puis sur **"Copy URL"**. Collez le lien ci-dessus. Le logo s'affichera désormais à une taille optimisée pour une visibilité maximale.
-                        </p>
-                        {appLogo && (
-                          <button
-                            onClick={() => { setAppLogo(null); setTempLogoUrl(''); localStorage.removeItem('leadgen_app_logo'); updateLogo(""); }}
-                            className="text-rose-500 text-[10px] font-black uppercase italic tracking-widest hover:underline pt-2"
-                          >
-                            Réinitialiser l'image par défaut
-                          </button>
-                        )}
+                        <div className="p-6 bg-indigo-500/5 rounded-3xl border border-indigo-100/50 space-y-3">
+                          <h4 className="text-[11px] font-black uppercase italic text-indigo-700 flex items-center gap-2">
+                            <Sparkles size={14} /> Neural Display
+                          </h4>
+                          <p className="text-[10px] text-indigo-900/60 leading-relaxed font-bold">
+                            Le logo configuré sera automatiquement optimisé et synchronisé sur tous vos terminaux via le cluster Supabase.
+                          </p>
+                          {appLogo && (
+                            <button
+                              onClick={() => { setAppLogo(null); setTempLogoUrl(''); localStorage.removeItem('leadgen_app_logo'); updateLogo(""); }}
+                              className="text-indigo-400 text-[10px] font-black uppercase italic tracking-widest hover:text-rose-500 pt-2 transition-colors"
+                            >
+                              Réinitialiser l'image par défaut
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
 
                 {/* 3. EMAIL ENGINE */}
-                <div className="bg-white/70 backdrop-blur-2xl p-16 rounded-[64px] border border-white shadow-2xl">
+                <div className="bg-white rounded-[48px] border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.05)] overflow-hidden">
+                  <div className="p-10 border-b border-slate-50 flex items-center justify-between bg-white">
+                    <div className="flex items-center gap-6">
+                      <div className="p-4 bg-rose-500/10 text-rose-600 rounded-2xl"><Mail size={24} /></div>
+                      <div>
+                        <h3 className="text-xl font-black text-slate-900 uppercase italic tracking-tight">Email Engine</h3>
+                        <p className="text-slate-400 text-[9px] font-black uppercase tracking-widest mt-1 opacity-60">Professional Integration</p>
+                      </div>
+                    </div>
+                    <div className="px-4 py-2 bg-rose-50 text-rose-600 rounded-full border border-rose-100 italic text-[10px] font-black uppercase tracking-widest">
+                      Gateway Ready
+                    </div>
+                  </div>
+                  <div className="p-10 space-y-8 bg-slate-50/30">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <div className="space-y-3">
+                        <label className="text-[10px] font-black uppercase text-slate-500 ml-4 tracking-widest">Public Key</label>
+                        <input value={emailConfig.emailjsPublicKey} onChange={e => setEmailConfig({ ...emailConfig, emailjsPublicKey: e.target.value })} className="w-full p-6 bg-white border border-slate-200 rounded-[24px] outline-none font-bold text-sm shadow-sm" placeholder="user_xxx" />
+                      </div>
+                      <div className="space-y-3">
+                        <label className="text-[10px] font-black uppercase text-slate-500 ml-4 tracking-widest">Service ID</label>
+                        <input value={emailConfig.emailjsServiceId} onChange={e => setEmailConfig({ ...emailConfig, emailjsServiceId: e.target.value })} className="w-full p-6 bg-white border border-slate-200 rounded-[24px] outline-none font-bold text-sm shadow-sm" placeholder="service_xxx" />
+                      </div>
+                      <div className="space-y-3">
+                        <label className="text-[10px] font-black uppercase text-slate-500 ml-4 tracking-widest">Template ID</label>
+                        <input value={emailConfig.emailjsTemplateId} onChange={e => setEmailConfig({ ...emailConfig, emailjsTemplateId: e.target.value })} className="w-full p-6 bg-white border border-slate-200 rounded-[24px] outline-none font-bold text-sm shadow-sm" placeholder="template_xxx" />
+                      </div>
+                      <div className="space-y-3">
+                        <label className="text-[10px] font-black uppercase text-slate-500 ml-4 tracking-widest">Access Token</label>
+                        <input type="password" value={emailConfig.emailjsAccessToken} onChange={e => setEmailConfig({ ...emailConfig, emailjsAccessToken: e.target.value })} className="w-full p-6 bg-white border border-slate-200 rounded-[24px] outline-none font-bold text-sm shadow-sm" placeholder="TOKEN-SECURE" />
+                      </div>
+                    </div>
+                    <button onClick={saveEmailConfig} disabled={isSyncing} className="w-full py-6 bg-slate-900 text-white rounded-[24px] font-black uppercase text-[11px] tracking-widest shadow-xl hover:bg-rose-600 transition-all italic flex items-center justify-center gap-3">
+                      {isSyncing ? <RefreshCw className="animate-spin" size={18} /> : <Save size={18} />}
+                      Update Email Gateway
+                    </button>
+                  </div>
+                </div>
+
+                {/* 4. MANUEL UTILISATEUR */}
+                <div className="bg-slate-900 p-16 rounded-[64px] border border-slate-800 shadow-3xl text-white">
                   <div className="flex items-center gap-8 mb-16">
-                    <div className="p-6 bg-gradient-to-tr from-rose-400 to-rose-600 text-white rounded-[32px] shadow-xl shadow-rose-500/20 rotate-3"><Mail size={40} /></div>
+                    <div className="p-6 bg-indigo-500 text-white rounded-[32px] shadow-xl shadow-indigo-500/20 -rotate-3"><BookOpen size={40} /></div>
                     <div>
-                      <h3 className="text-4xl font-black text-slate-900 uppercase italic tracking-tighter">Email Engine</h3>
-                      <p className="text-slate-400 text-[11px] font-black uppercase tracking-[0.5em] mt-3">EmailJS Professional Integration</p>
+                      <h3 className="text-4xl font-black uppercase italic tracking-tighter">Guide Utilisateur</h3>
+                      <p className="text-indigo-400 text-[11px] font-black uppercase tracking-[0.5em] mt-3">Documentation Officielle LeadGen AI Pro</p>
                     </div>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                    <div className="space-y-4">
-                      <label className="text-[10px] font-black uppercase text-slate-400 ml-8 tracking-[0.5em]">Public Key (User ID)</label>
-                      <input value={emailConfig.emailjsPublicKey} onChange={e => setEmailConfig({ ...emailConfig, emailjsPublicKey: e.target.value })} className="w-full p-6 bg-slate-50 border border-slate-100 rounded-[28px] outline-none font-bold italic text-sm" placeholder="user_xxxxxxxx" />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                    <div className="space-y-12">
+                      <div className="space-y-4">
+                        <h4 className="text-indigo-400 text-[12px] font-black uppercase tracking-widest italic flex items-center gap-3">
+                          <BarChart3 size={18} /> 01. Tableau de Bord
+                        </h4>
+                        <p className="text-slate-400 text-sm font-medium leading-relaxed">
+                          Le centre de pilotage. Suivez en temps réel le nombre de <b className="text-white">Membres (Verts)</b>, de <b className="text-white">Leads (Bleus)</b> et de rendez-vous qualifiés. Vérifiez le point de synchronisation Cloud en haut à gauche.
+                        </p>
+                      </div>
+                      <div className="space-y-4">
+                        <h4 className="text-emerald-400 text-[12px] font-black uppercase tracking-widest italic flex items-center gap-3">
+                          <Users size={18} /> 02. Gestion Contacts
+                        </h4>
+                        <p className="text-slate-400 text-sm font-medium leading-relaxed">
+                          Les <b className="text-white">Membres</b> sont vos partenaires actifs. Les <b className="text-white">Prospects</b> sont vos cibles. Utilisez le bouton "Ajouter" pour une création manuelle ou le scanneur de cartes pour l'automatisation.
+                        </p>
+                      </div>
                     </div>
-                    <div className="space-y-4">
-                      <label className="text-[10px] font-black uppercase text-slate-400 ml-8 tracking-[0.5em]">Service ID</label>
-                      <input value={emailConfig.emailjsServiceId} onChange={e => setEmailConfig({ ...emailConfig, emailjsServiceId: e.target.value })} className="w-full p-6 bg-slate-50 border border-slate-100 rounded-[28px] outline-none font-bold italic text-sm" placeholder="service_xxxx" />
+                    <div className="space-y-12">
+                      <div className="space-y-4">
+                        <h4 className="text-amber-400 text-[12px] font-black uppercase tracking-widest italic flex items-center gap-3">
+                          <Send size={18} /> 03. Travaux de Campagne
+                        </h4>
+                        <p className="text-slate-400 text-sm font-medium leading-relaxed">
+                          Créez des workflows en 4 étapes. Utilisez la <b className="text-white">Bibliothèque de Templates</b> pour gagner du temps. Définissez votre objectif (RDV, Salon, Intérêt) pour un suivi automatique précis.
+                        </p>
+                      </div>
+                      <div className="space-y-4">
+                        <h4 className="text-indigo-400 text-[12px] font-black uppercase tracking-widest italic flex items-center gap-3">
+                          <Sparkles size={18} /> 04. Intelligence Artificielle
+                        </h4>
+                        <p className="text-slate-400 text-sm font-medium leading-relaxed">
+                          Le <b className="text-white">Scanneur IA</b> extrait les données des photos. <b className="text-white">IA Enrich</b> qualifie vos leads avec des infos contextuelles. <b className="text-white">IA Voice</b> permet une interaction mains-libres.
+                        </p>
+                      </div>
                     </div>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div className="space-y-4">
-                      <label className="text-[10px] font-black uppercase text-slate-400 ml-8 tracking-[0.5em]">Template ID</label>
-                      <input value={emailConfig.emailjsTemplateId} onChange={e => setEmailConfig({ ...emailConfig, emailjsTemplateId: e.target.value })} className="w-full p-6 bg-slate-50 border border-slate-100 rounded-[28px] outline-none font-bold italic text-sm" placeholder="template_xxxx" />
+                  <div className="mt-16 p-10 bg-slate-800/50 rounded-[40px] border border-slate-700/50 flex flex-col md:flex-row items-center gap-10">
+                    <div className="p-6 bg-slate-900 rounded-3xl border border-slate-700 italic text-[11px] font-bold text-slate-400 text-center md:text-left flex-1">
+                      Astuce Pro : Exportez vos listes au format <b className="text-indigo-400">CSV</b> depuis l'onglet "Reporting" pour vos comptes-rendus externes.
                     </div>
-                    <div className="space-y-4">
-                      <label className="text-[10px] font-black uppercase text-slate-400 ml-8 tracking-[0.5em]">Access Token (Private Key)</label>
-                      <input type="password" value={emailConfig.emailjsAccessToken} onChange={e => setEmailConfig({ ...emailConfig, emailjsAccessToken: e.target.value })} className="w-full p-6 bg-slate-50 border border-slate-100 rounded-[28px] outline-none font-bold italic text-sm" placeholder="Optional for most cases" />
+                    <div className="flex items-center gap-4 px-6 py-4 bg-indigo-500/10 rounded-[24px] border border-indigo-500/20">
+                      <Zap size={20} className="text-indigo-400" />
+                      <span className="text-[10px] font-black uppercase tracking-widest text-indigo-200">Version 15.1 Stable</span>
                     </div>
                   </div>
-                  <button onClick={saveEmailConfig} disabled={isSyncing} className="w-full mt-12 py-8 bg-slate-900 text-white rounded-[32px] font-black uppercase text-[12px] tracking-[0.4em] shadow-xl hover:bg-rose-600 transition-all italic flex items-center justify-center gap-4 disabled:opacity-50">
-                    {isSyncing ? <RefreshCw className="animate-spin" size={24} /> : <Save size={24} />}
-                    Save Email Gateway
-                  </button>
                 </div>
               </div>
             )}
