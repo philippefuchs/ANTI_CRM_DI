@@ -198,17 +198,19 @@ const ContactManager: React.FC<ContactManagerProps> = ({ category }) => {
 
   const handleDownloadTemplate = () => {
     // Using proper CSV format with Windows line breaks
+    // Labels in French for better user experience
     const rows = [
-      'first_name,last_name,email,company,title,phone,linkedin_url,website,sector,address,notes,status',
-      'John,Doe,john.doe@example.com,Acme Corp,CEO,+33612345678,https://linkedin.com/in/johndoe,https://acme.com,Technology,Paris,Great contact,New',
-      'Jane,Smith,jane.smith@example.com,Tech Solutions,CTO,+33698765432,,,SaaS,Lyon,Excellent prospect,Contacted'
+      'Prénom,Nom,Email,Société,Titre,Téléphone,LinkedIn,Site_Web,Secteur,Adresse,Notes,Statut',
+      'Jean,Dupont,jean.dupont@exemple.com,Acme Corp,Directeur,+33612345678,https://linkedin.com/in/jeandupont,https://acme.com,Technologie,Paris,Excellent contact,Nouveau',
+      'Marie,Martin,marie.martin@exemple.com,Tech Solutions,CTO,+33698765432,,,SaaS,Lyon,Prospect intéressant,Contacté'
     ];
     const csvContent = '\uFEFF' + rows.join('\r\n'); // UTF-8 BOM + Windows line breaks
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `template_import_${category}.csv`;
+    const fileName = category === 'member' ? 'Modèle_Import_Membres.csv' : 'Modèle_Import_Prospects.csv';
+    link.download = fileName;
     link.click();
   };
 
@@ -227,13 +229,30 @@ const ContactManager: React.FC<ContactManagerProps> = ({ category }) => {
       const headers = lines[0].split(',').map(h => h.trim());
       const contacts: any[] = [];
 
+      // Map French headers to DB fields
+      const headerMap: { [key: string]: string } = {
+        'Prénom': 'first_name',
+        'Nom': 'last_name',
+        'Email': 'email',
+        'Société': 'company',
+        'Titre': 'title',
+        'Téléphone': 'phone',
+        'LinkedIn': 'linkedin_url',
+        'Site_Web': 'website',
+        'Secteur': 'sector',
+        'Adresse': 'address',
+        'Notes': 'notes',
+        'Statut': 'status'
+      };
+
       for (let i = 1; i < lines.length; i++) {
         const values = lines[i].split(',').map(v => v.trim());
         const contact: any = { category };
 
         headers.forEach((header, index) => {
+          const dbField = headerMap[header] || header;
           if (values[index]) {
-            contact[header] = values[index];
+            contact[dbField] = values[index];
           }
         });
 
@@ -271,7 +290,9 @@ const ContactManager: React.FC<ContactManagerProps> = ({ category }) => {
               <Users size={24} lg:size={32} strokeWidth={2.5} />
             </div>
             <div>
-              <h2 className="text-xl lg:text-3xl font-black uppercase italic tracking-tighter text-slate-900 leading-tight">Master Database <span className={`text-${themeColor}-600`}>{category}s</span></h2>
+              <h2 className="text-xl lg:text-3xl font-black uppercase italic tracking-tighter text-slate-900 leading-tight">
+                BASE DE DONNÉES <span className={`text-${themeColor}-600`}>{category === 'member' ? 'MEMBRES' : 'PROSPECTS'}</span>
+              </h2>
               <p className="text-[8px] lg:text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] mt-1 lg:mt-2 italic flex items-center gap-2">
                 <div className={`w-1.5 h-1.5 rounded-full bg-${themeColor}-500 animate-pulse`}></div> Cloud Node v13.1
               </p>
@@ -521,7 +542,7 @@ const ContactManager: React.FC<ContactManagerProps> = ({ category }) => {
           <div className="bg-white rounded-[32px] p-8 max-w-xl w-full shadow-2xl">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-black uppercase italic text-slate-900">
-                Importer des {category}s
+                Importer des {category === 'member' ? 'Membres' : 'Prospects'}
               </h3>
               <button
                 onClick={() => { setShowImportModal(false); setImportFile(null); }}
