@@ -570,125 +570,155 @@ const CampaignManager: React.FC = () => {
               ))}
             </div>
 
-            <div className="flex-1 overflow-y-auto p-12 custom-scrollbar">
+            <div className="flex-1 overflow-hidden flex flex-col p-12 custom-scrollbar">
               {step === 1 && (
-                <div className="max-w-xl mx-auto space-y-12 py-10 text-center">
-                  <div className="space-y-4">
-                    <h2 className="text-4xl font-black uppercase italic tracking-tighter text-slate-900">Identité Workflow</h2>
-                    <p className="text-slate-400 text-sm font-medium">Nommez cette séquence de prospection.</p>
+                <div className="flex flex-col h-full">
+                  <div className="flex-1 flex flex-col justify-center max-w-xl mx-auto space-y-12 py-10 text-center">
+                    <div className="space-y-4">
+                      <h2 className="text-4xl font-black uppercase italic tracking-tighter text-slate-900">Identité Workflow</h2>
+                      <p className="text-slate-400 text-sm font-medium">Nommez cette séquence de prospection.</p>
+                    </div>
+                    <input
+                      value={newCampaignData.name}
+                      onChange={e => setNewCampaignData({ ...newCampaignData, name: e.target.value })}
+                      className="w-full px-12 py-10 bg-slate-50 border-2 border-transparent rounded-[48px] outline-none text-3xl font-black italic text-center uppercase focus:border-indigo-500 focus:bg-white transition-all shadow-inner"
+                      placeholder="EX: PROSPECTION LILLE 2024"
+                    />
                   </div>
-                  <input
-                    value={newCampaignData.name}
-                    onChange={e => setNewCampaignData({ ...newCampaignData, name: e.target.value })}
-                    className="w-full px-12 py-10 bg-slate-50 border-2 border-transparent rounded-[48px] outline-none text-3xl font-black italic text-center uppercase focus:border-indigo-500 focus:bg-white transition-all shadow-inner"
-                    placeholder="EX: PROSPECTION LILLE 2024"
-                  />
-                  <button onClick={() => setStep(2)} className="w-full py-8 bg-slate-900 text-white rounded-[40px] font-black uppercase text-[12px] tracking-widest shadow-2xl disabled:opacity-20 transition-all italic flex items-center justify-center gap-4 group" disabled={!newCampaignData.name.trim()}>
-                    Suivant <ChevronRight className="group-hover:translate-x-2 transition-transform" size={24} />
-                  </button>
+                  <div className="pt-8 border-t border-slate-50 sticky bottom-0 bg-white z-10">
+                    <button onClick={() => setStep(2)} className="w-full py-8 bg-slate-900 text-white rounded-[40px] font-black uppercase text-[12px] tracking-widest shadow-2xl disabled:opacity-20 transition-all italic flex items-center justify-center gap-4 group" disabled={!newCampaignData.name.trim()}>
+                      Suivant <ChevronRight className="group-hover:translate-x-2 transition-transform" size={24} />
+                    </button>
+                  </div>
                 </div>
               )}
 
               {step === 2 && (
-                <div className="space-y-8 animate-in fade-in duration-500">
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 bg-slate-50 p-8 rounded-[40px] border border-slate-100">
-                    <div className="flex p-2 bg-white rounded-[24px] shadow-sm border border-slate-100">
-                      {[
-                        { id: 'all', l: 'Tous', i: <UsersIcon size={14} /> },
-                        { id: 'prospect', l: 'Prospects', i: <Target size={14} /> },
-                        { id: 'member', l: 'Membres', i: <UserCheck size={14} /> }
-                      ].map(btn => (
-                        <button key={btn.id} onClick={() => setCategoryFilter(btn.id as any)} className={`px-8 py-3 rounded-[18px] text-[10px] font-black uppercase italic tracking-widest transition-all flex items-center gap-2 ${categoryFilter === btn.id ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-400 hover:text-slate-600'}`}>
-                          {btn.i} {btn.l}
-                        </button>
-                      ))}
+                <div className="flex flex-col h-full animate-in fade-in duration-500 overflow-hidden">
+                  <div className="flex-1 overflow-y-auto space-y-8 pr-2 custom-scrollbar pb-6">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 bg-slate-50 p-8 rounded-[40px] border border-slate-100">
+                      <div className="flex p-2 bg-white rounded-[24px] shadow-sm border border-slate-100">
+                        {[
+                          { id: 'all', l: 'Tous', i: <UsersIcon size={14} /> },
+                          { id: 'prospect', l: 'Prospects', i: <Target size={14} /> },
+                          { id: 'member', l: 'Membres', i: <UserCheck size={14} /> }
+                        ].map(btn => (
+                          <button key={btn.id} onClick={() => setCategoryFilter(btn.id as any)} className={`px-8 py-3 rounded-[18px] text-[10px] font-black uppercase italic tracking-widest transition-all flex items-center gap-2 ${categoryFilter === btn.id ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-400 hover:text-slate-600'}`}>
+                            {btn.i} {btn.l}
+                          </button>
+                        ))}
+                      </div>
+                      <div className="relative flex-1 max-w-sm">
+                        <Search className="absolute left-6 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-300" />
+                        <input
+                          placeholder="Filtrer..."
+                          className="w-full pl-16 pr-8 py-5 bg-white border border-slate-200 rounded-[24px] text-[12px] font-bold outline-none italic"
+                          value={targetSearch}
+                          onChange={e => setTargetSearch(e.target.value)}
+                        />
+                      </div>
                     </div>
-                    <div className="relative flex-1 max-w-sm">
-                      <Search className="absolute left-6 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-300" />
-                      <input
-                        placeholder="Filtrer..."
-                        className="w-full pl-16 pr-8 py-5 bg-white border border-slate-200 rounded-[24px] text-[12px] font-bold outline-none italic"
-                        value={targetSearch}
-                        onChange={e => setTargetSearch(e.target.value)}
-                      />
-                    </div>
-                  </div>
 
-                  <div className="flex flex-wrap justify-between items-center px-4 gap-4">
-                    <div className="flex gap-4">
-                      <button onClick={selectAllFiltered} className="text-[10px] font-black uppercase italic tracking-widest text-indigo-600 flex items-center gap-2 hover:bg-indigo-50 px-4 py-2 rounded-xl transition-colors border border-indigo-100"><CheckSquare size={16} /> Tout</button>
-                      <button onClick={deselectAllFiltered} className="text-[10px] font-black uppercase italic tracking-widest text-rose-500 flex items-center gap-2 hover:bg-rose-50 px-4 py-2 rounded-xl transition-colors border border-rose-100"><Square size={16} /> Aucun</button>
+                    <div className="flex flex-wrap justify-between items-center px-4 gap-4">
+                      <div className="flex gap-4">
+                        <button onClick={selectAllFiltered} className="text-[10px] font-black uppercase italic tracking-widest text-indigo-600 flex items-center gap-2 hover:bg-indigo-50 px-4 py-2 rounded-xl transition-colors border border-indigo-100"><CheckSquare size={16} /> Tout</button>
+                        <button onClick={deselectAllFiltered} className="text-[10px] font-black uppercase italic tracking-widest text-rose-500 flex items-center gap-2 hover:bg-rose-50 px-4 py-2 rounded-xl transition-colors border border-rose-100"><Square size={16} /> Aucun</button>
+                      </div>
+                      <p className="text-[10px] font-black uppercase text-slate-400 italic tracking-[0.2em]">{selectedTargetIds.length} SÉLECTIONNÉES</p>
                     </div>
-                    <p className="text-[10px] font-black uppercase text-slate-400 italic tracking-[0.2em]">{selectedTargetIds.length} SÉLECTIONNÉES</p>
-                  </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-h-[400px] overflow-y-auto pr-4 custom-scrollbar">
-                    {currentFilteredContacts.map(p => {
-                      const isSelected = selectedTargetIds.includes(String(p.id));
-                      return (
-                        <div key={p.id} onClick={() => setSelectedTargetIds(prev => isSelected ? prev.filter(x => x !== String(p.id)) : [...prev, String(p.id)])} className={`p-8 rounded-[40px] border-4 cursor-pointer transition-all duration-300 relative group overflow-hidden ${isSelected ? 'bg-indigo-50 border-indigo-500 shadow-xl' : 'bg-white border-slate-50 hover:border-slate-200'}`}>
-                          <div className="flex items-center gap-5 relative z-10">
-                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-md transition-transform group-hover:scale-110 ${isSelected ? 'bg-indigo-600' : 'bg-slate-200 text-slate-400'}`}>
-                              {isSelected ? <Check size={24} strokeWidth={4} /> : <User size={24} />}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {currentFilteredContacts.map(p => {
+                        const isSelected = selectedTargetIds.includes(String(p.id));
+                        return (
+                          <div
+                            key={p.id}
+                            onClick={() => setSelectedTargetIds(prev => isSelected ? prev.filter(x => x !== String(p.id)) : [...prev, String(p.id)])}
+                            className={`p-8 rounded-[40px] border-4 cursor-pointer transition-all duration-300 relative group overflow-hidden ${isSelected
+                              ? 'bg-indigo-600 border-indigo-400 shadow-2xl scale-[1.02] z-10'
+                              : p.category === 'member'
+                                ? 'bg-emerald-50 border-emerald-100 hover:border-emerald-300'
+                                : 'bg-indigo-50 border-indigo-100 hover:border-indigo-300'
+                              }`}
+                          >
+                            <div className="flex items-center gap-5 relative z-10">
+                              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-md transition-transform group-hover:scale-110 ${isSelected
+                                ? 'bg-white text-indigo-600'
+                                : p.category === 'member' ? 'bg-emerald-500 text-white' : 'bg-indigo-500 text-white'
+                                }`}>
+                                {isSelected ? <Check size={28} strokeWidth={4} /> : <User size={24} />}
+                              </div>
+                              <div className="flex-1 truncate">
+                                <p className={`text-[11px] font-black uppercase italic mb-1 ${isSelected
+                                  ? 'text-indigo-200'
+                                  : p.category === 'member' ? 'text-emerald-600' : 'text-indigo-600'
+                                  }`}>{p.company || 'Sans société'}</p>
+                                <p className={`text-lg font-black uppercase tracking-tighter italic leading-none ${isSelected ? 'text-white' : 'text-slate-900'
+                                  }`}>{p.firstName} {p.lastName}</p>
+                              </div>
                             </div>
-                            <div className="flex-1 truncate">
-                              <p className={`text-[11px] font-black uppercase italic mb-1 ${isSelected ? 'text-indigo-600' : 'text-slate-400'}`}>{p.company || 'Sans société'}</p>
-                              <p className="text-lg font-black text-slate-900 uppercase tracking-tighter italic leading-none">{p.firstName} {p.lastName}</p>
-                            </div>
+                            {/* Petit badge type */}
+                            {!isSelected && (
+                              <div className={`absolute top-4 right-6 text-[8px] font-black uppercase tracking-widest px-3 py-1 rounded-full border ${p.category === 'member' ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : 'bg-indigo-100 text-indigo-700 border-indigo-200'}`}>
+                                {p.category === 'member' ? 'MEMBRE' : 'PROSPECT'}
+                              </div>
+                            )}
                           </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
                   </div>
 
-                  <div className="pt-10 flex justify-between border-t items-center">
-                    <button onClick={() => setStep(1)} className="px-10 py-5 text-slate-300 font-black uppercase italic tracking-widest flex items-center gap-3"><ChevronLeft size={20} /> Retour</button>
+                  <div className="pt-8 border-t border-slate-50 flex justify-between items-center sticky bottom-0 bg-white z-10">
+                    <button onClick={() => setStep(1)} className="px-10 py-5 text-slate-300 font-black uppercase italic tracking-widest flex items-center gap-2 hover:text-slate-600 transition-colors"><ChevronLeft size={20} /> Retour</button>
                     <button onClick={() => setStep(3)} disabled={selectedTargetIds.length === 0} className="px-16 py-6 bg-slate-900 text-white rounded-[32px] font-black text-[12px] uppercase tracking-widest shadow-2xl disabled:opacity-20 italic">Message <ChevronRight size={20} /></button>
                   </div>
                 </div>
               )}
 
               {step === 3 && (
-                <div className="space-y-10 py-6 max-w-3xl mx-auto animate-in slide-in-from-right-4 duration-500">
-                  <div className="space-y-4">
-                    <label className="text-[11px] font-black uppercase text-slate-400 tracking-widest ml-6">Objet de l'email</label>
-                    <input value={newCampaignData.subject} onChange={e => setNewCampaignData({ ...newCampaignData, subject: e.target.value })} className="w-full px-10 py-8 bg-slate-50 border-2 border-transparent rounded-[32px] font-black italic outline-none focus:border-indigo-500 focus:bg-white transition-all uppercase text-sm shadow-inner" placeholder="OBJET..." />
-                  </div>
-                  <div className="flex justify-between items-center px-6">
-                    <label className="text-[11px] font-black uppercase text-slate-400 tracking-widest">Corps du message (Variable : {"{{Prénom}}"})</label>
-                    <button
-                      onClick={() => setShowTemplateLibrary(!showTemplateLibrary)}
-                      className="flex items-center gap-2 text-[10px] font-black uppercase italic text-indigo-600 hover:text-indigo-700 transition-colors"
-                    >
-                      <BookOpen size={14} /> {showTemplateLibrary ? "Fermer la Bibliothèque" : "Choisir un Template"}
-                    </button>
-                  </div>
-
-                  {showTemplateLibrary && (libraryTemplates.length > 0) && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-indigo-50/50 p-6 rounded-[32px] border border-indigo-100 animate-in slide-in-from-top-4 duration-300">
-                      {libraryTemplates.map(tpl => (
-                        <button
-                          key={tpl.id}
-                          onClick={() => {
-                            setNewCampaignData({ ...newCampaignData, subject: tpl.subject, template: tpl.body });
-                            setShowTemplateLibrary(false);
-                          }}
-                          className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-transparent hover:border-indigo-500 hover:shadow-lg transition-all text-left group"
-                        >
-                          <div className="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0 group-hover:rotate-12 transition-transform">
-                            <Mail size={18} />
-                          </div>
-                          <div className="truncate">
-                            <p className="text-[10px] font-black uppercase text-slate-900 italic truncate">{tpl.name}</p>
-                            <p className="text-[9px] font-bold text-slate-400 truncate uppercase tracking-widest">{tpl.category}</p>
-                          </div>
-                        </button>
-                      ))}
+                <div className="flex flex-col h-full animate-in slide-in-from-right-4 duration-500 overflow-hidden">
+                  <div className="flex-1 overflow-y-auto space-y-10 pr-2 custom-scrollbar pb-10">
+                    <div className="space-y-4">
+                      <label className="text-[11px] font-black uppercase text-slate-400 tracking-widest ml-6">Objet de l'email</label>
+                      <input value={newCampaignData.subject} onChange={e => setNewCampaignData({ ...newCampaignData, subject: e.target.value })} className="w-full px-10 py-8 bg-slate-50 border-2 border-transparent rounded-[32px] font-black italic outline-none focus:border-indigo-500 focus:bg-white transition-all uppercase text-sm shadow-inner" placeholder="OBJET..." />
                     </div>
-                  )}
+                    <div className="flex justify-between items-center px-6">
+                      <label className="text-[11px] font-black uppercase text-slate-400 tracking-widest">Corps du message (Variable : {"{{Prénom}}"})</label>
+                      <button
+                        onClick={() => setShowTemplateLibrary(!showTemplateLibrary)}
+                        className="flex items-center gap-2 text-[10px] font-black uppercase italic text-indigo-600 hover:text-indigo-700 transition-colors"
+                      >
+                        <BookOpen size={14} /> {showTemplateLibrary ? "Fermer la Bibliothèque" : "Choisir un Template"}
+                      </button>
+                    </div>
 
-                  <textarea rows={10} value={newCampaignData.template} onChange={e => setNewCampaignData({ ...newCampaignData, template: e.target.value })} className="w-full px-10 py-10 bg-slate-50 border-2 border-transparent rounded-[48px] outline-none text-sm font-medium focus:border-indigo-500 focus:bg-white transition-all italic shadow-inner leading-relaxed" placeholder="Bonjour..." />
-                  <div className="flex justify-between items-center pt-8 border-t border-slate-100">
+                    {showTemplateLibrary && (libraryTemplates.length > 0) && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-indigo-50/50 p-6 rounded-[32px] border border-indigo-100 animate-in slide-in-from-top-4 duration-300">
+                        {libraryTemplates.map(tpl => (
+                          <button
+                            key={tpl.id}
+                            onClick={() => {
+                              setNewCampaignData({ ...newCampaignData, subject: tpl.subject, template: tpl.body });
+                              setShowTemplateLibrary(false);
+                            }}
+                            className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-transparent hover:border-indigo-500 hover:shadow-lg transition-all text-left group"
+                          >
+                            <div className="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0 group-hover:rotate-12 transition-transform">
+                              <Mail size={18} />
+                            </div>
+                            <div className="truncate">
+                              <p className="text-[10px] font-black uppercase text-slate-900 italic truncate">{tpl.name}</p>
+                              <p className="text-[9px] font-bold text-slate-400 truncate uppercase tracking-widest">{tpl.category}</p>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    <textarea rows={10} value={newCampaignData.template} onChange={e => setNewCampaignData({ ...newCampaignData, template: e.target.value })} className="w-full px-10 py-10 bg-slate-50 border-2 border-transparent rounded-[48px] outline-none text-sm font-medium focus:border-indigo-500 focus:bg-white transition-all italic shadow-inner leading-relaxed" placeholder="Bonjour..." />
+                  </div>
+                  <div className="pt-8 flex justify-between items-center border-t border-slate-50 sticky bottom-0 bg-white z-10">
                     <button onClick={() => setStep(2)} className="text-[11px] font-black uppercase italic tracking-widest text-slate-300 hover:text-slate-600 transition-colors flex items-center gap-2"><ChevronLeft size={20} /> Retour</button>
                     <button onClick={() => setStep(4)} className="px-16 py-6 bg-slate-900 text-white rounded-[32px] font-black text-[11px] uppercase tracking-widest shadow-2xl italic">Objectif <ChevronRight size={20} /></button>
                   </div>
@@ -696,26 +726,45 @@ const CampaignManager: React.FC = () => {
               )}
 
               {step === 4 && (
-                <div className="space-y-16 py-10 max-w-4xl mx-auto text-center animate-in zoom-in duration-500">
-                  <div className="space-y-4">
-                    <h3 className="text-4xl font-black uppercase italic tracking-tighter text-slate-900">Objectif du Workflow</h3>
-                    <p className="text-slate-400 text-sm font-medium">Définissez le but final de cette séquence.</p>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    {[
-                      { id: 'Meeting', l: 'Rendez-vous', i: <Calendar size={40} />, c: 'indigo' },
-                      { id: 'Event', l: 'Salon Pro', i: <UsersIcon size={40} />, c: 'emerald' },
-                      { id: 'Positive', l: 'Intérêt Pur', i: <UserCheck size={40} />, c: 'amber' }
-                    ].map(goal => (
-                      <div key={goal.id} className={`p-12 rounded-[56px] border-4 cursor-pointer transition-all duration-500 group relative ${newCampaignData.goal === goal.id ? `bg-${goal.c}-50 border-${goal.c}-600 shadow-2xl scale-105` : 'bg-white border-transparent hover:bg-slate-50'}`} onClick={() => setNewCampaignData({ ...newCampaignData, goal: goal.id as any })}>
-                        <div className={`w-20 h-20 rounded-[28px] mx-auto mb-8 flex items-center justify-center transition-transform group-hover:rotate-12 ${newCampaignData.goal === goal.id ? `bg-${goal.c}-600 text-white` : 'bg-slate-100 text-slate-400'}`}>
-                          {goal.i}
+                <div className="flex flex-col h-full animate-in zoom-in duration-500 overflow-hidden">
+                  <div className="flex-1 overflow-y-auto space-y-12 py-8 pr-2 custom-scrollbar pb-10">
+                    <div className="space-y-3 text-center">
+                      <h3 className="text-2xl font-black uppercase italic tracking-tight text-slate-900 leading-none">Objectif final</h3>
+                      <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest italic opacity-70">Définissez le but de cette séquence</p>
+                    </div>
+
+                    <div className="max-w-3xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {[
+                        { id: 'Meeting', l: 'Rendez-vous', i: <Calendar size={20} />, c: 'indigo' },
+                        { id: 'Event', l: 'Salon Pro', i: <UsersIcon size={20} />, c: 'emerald' },
+                        { id: 'Positive', l: 'Intérêt Pur', i: <UserCheck size={20} />, c: 'amber' }
+                      ].map(goal => (
+                        <div
+                          key={goal.id}
+                          className={`p-6 rounded-3xl border-2 cursor-pointer transition-all duration-400 group relative flex items-center gap-4 ${newCampaignData.goal === goal.id
+                            ? `bg-${goal.c}-50 border-${goal.c}-500 shadow-xl scale-[1.02]`
+                            : 'bg-white border-slate-100 hover:border-slate-200'
+                            }`}
+                          onClick={() => setNewCampaignData({ ...newCampaignData, goal: goal.id as any })}
+                        >
+                          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500 shadow-sm ${newCampaignData.goal === goal.id
+                            ? `bg-${goal.c}-600 text-white`
+                            : 'bg-slate-50 text-slate-400 group-hover:bg-slate-100'
+                            }`}>
+                            {goal.i}
+                          </div>
+                          <div>
+                            <h4 className={`text-[11px] font-black uppercase italic tracking-wider leading-none ${newCampaignData.goal === goal.id ? `text-${goal.c}-700` : 'text-slate-900 opacity-60'}`}>{goal.l}</h4>
+                            <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-1 opacity-50">Sélectionner</p>
+                          </div>
+                          {newCampaignData.goal === goal.id && (
+                            <div className={`absolute top-3 right-3 w-2 h-2 rounded-full bg-${goal.c}-500 shadow-[0_0_8px_rgba(0,0,0,0.1)]`}></div>
+                          )}
                         </div>
-                        <h4 className="text-[12px] font-black uppercase italic tracking-widest">{goal.l}</h4>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                  <div className="pt-12 flex justify-between items-center border-t border-slate-100">
+                  <div className="pt-12 flex justify-between items-center border-t border-slate-50 sticky bottom-0 bg-white z-10">
                     <button onClick={() => setStep(3)} className="text-[11px] font-black uppercase italic tracking-widest text-slate-300 hover:text-slate-600 transition-colors flex items-center gap-2"><ChevronLeft size={20} /> Retour</button>
                     <button onClick={handleCreateCampaign} disabled={isCreating} className="px-24 py-10 bg-emerald-500 text-white rounded-[48px] font-black text-[14px] uppercase tracking-widest shadow-2xl italic flex items-center gap-5 transition-all hover:bg-emerald-600">
                       {isCreating ? <RefreshCw className="animate-spin" size={24} /> : <Zap size={24} fill="currentColor" />} Finaliser
