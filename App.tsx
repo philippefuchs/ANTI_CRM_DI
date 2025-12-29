@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
-  BarChart3, Settings, Mail, Mic, Image as ImageIcon, Cpu, Activity, RefreshCw, Cloud, Link2, ShieldAlert, Copy, Save, Database, Upload, Trash2, HelpCircle, ExternalLink, AlertCircle, Check, Terminal, Code, Users, FileSpreadsheet, Zap, Scan, Key, Palette, Sparkles, Globe, BookOpen, Send, GitMerge
+  BarChart3, Settings, Mail, Mic, Image as ImageIcon, Cpu, Activity, RefreshCw, Cloud, Link2, ShieldAlert, Copy, Save, Database, Upload, Trash2, HelpCircle, ExternalLink, AlertCircle, Check, Terminal, Code, Users, FileSpreadsheet, Zap, Scan, Key, Palette, Sparkles, Globe, BookOpen, Send, GitMerge, TrendingUp, FileText
 } from 'lucide-react';
 import Dashboard from './components/Dashboard';
 import ContactManager from './components/ContactManager';
@@ -13,9 +13,10 @@ import DataEnricher from './components/DataEnricher';
 import CardScanner from './components/CardScanner';
 import TemplateManager from './components/TemplateManager';
 import DuplicateManager from './components/DuplicateManager';
+import PipelineManager from './components/PipelineManager';
 import { supabase, isSupabaseConfigured, saveSupabaseConfig } from './services/supabase';
 
-type View = 'dashboard' | 'database' | 'members' | 'campaigns' | 'voice' | 'images' | 'reporting' | 'enricher' | 'scanner' | 'settings' | 'templates' | 'duplicates';
+type View = 'dashboard' | 'database' | 'members' | 'campaigns' | 'voice' | 'images' | 'reporting' | 'enricher' | 'scanner' | 'settings' | 'templates' | 'duplicates' | 'pipeline';
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<View>(isSupabaseConfigured() ? 'dashboard' : 'settings');
@@ -206,6 +207,7 @@ const App: React.FC = () => {
     { id: 'database', label: 'Prospects', icon: <Cloud size={20} />, color: 'from-indigo-500 to-blue-600' },
     { id: 'members', label: 'Membres', icon: <Users size={20} />, color: 'from-emerald-400 to-teal-600' },
     { id: 'duplicates', label: 'Doublons', icon: <GitMerge size={20} />, color: 'from-amber-500 to-orange-600' },
+    { id: 'pipeline', label: 'Pipeline', icon: <TrendingUp size={20} />, color: 'from-violet-500 to-purple-600' },
     { id: 'campaigns', label: 'Campagnes', icon: <Mail size={20} />, color: 'from-rose-500 to-pink-600' },
     { id: 'templates', label: 'E-mail Library', icon: <BookOpen size={20} />, color: 'from-amber-400 to-orange-500' },
     { id: 'reporting', label: 'Export', icon: <FileSpreadsheet size={20} />, color: 'from-slate-400 to-slate-600' },
@@ -328,6 +330,7 @@ const App: React.FC = () => {
             {currentView === 'database' && <ContactManager category="prospect" />}
             {currentView === 'members' && <ContactManager category="member" />}
             {currentView === 'duplicates' && <DuplicateManager />}
+            {currentView === 'pipeline' && <PipelineManager />}
             {currentView === 'campaigns' && <CampaignManager />}
             {currentView === 'templates' && <TemplateManager />}
             {currentView === 'reporting' && <ReportingManager />}
@@ -511,11 +514,27 @@ const App: React.FC = () => {
                           Les <b className="text-white">Membres</b> sont vos partenaires actifs. Les <b className="text-white">Prospects</b> sont vos cibles. Utilisez le bouton "Ajouter" pour une création manuelle ou le scanneur de cartes pour l'automatisation.
                         </p>
                       </div>
+                      <div className="space-y-4">
+                        <h4 className="text-amber-400 text-[12px] font-black uppercase tracking-widest italic flex items-center gap-3">
+                          <GitMerge size={18} /> 03. Gestion Doublons
+                        </h4>
+                        <p className="text-slate-400 text-sm font-medium leading-relaxed">
+                          Détectez automatiquement les contacts avec le même email. <b className="text-white">Fusionnez</b> les données ou <b className="text-white">supprimez</b> les doublons pour garder une base propre.
+                        </p>
+                      </div>
+                      <div className="space-y-4">
+                        <h4 className="text-violet-400 text-[12px] font-black uppercase tracking-widest italic flex items-center gap-3">
+                          <TrendingUp size={18} /> 04. Pipeline Commercial
+                        </h4>
+                        <p className="text-slate-400 text-sm font-medium leading-relaxed">
+                          Vue <b className="text-white">Kanban</b> de vos opportunités. Glissez-déposez entre les étapes (Nouveau → Gagné/Perdu). Suivez la valeur et la probabilité de chaque deal en temps réel.
+                        </p>
+                      </div>
                     </div>
                     <div className="space-y-12">
                       <div className="space-y-4">
                         <h4 className="text-amber-400 text-[12px] font-black uppercase tracking-widest italic flex items-center gap-3">
-                          <Send size={18} /> 03. Travaux de Campagne
+                          <Send size={18} /> 05. Campagnes Email
                         </h4>
                         <p className="text-slate-400 text-sm font-medium leading-relaxed">
                           Créez des workflows en 4 étapes. Utilisez la <b className="text-white">Bibliothèque de Templates</b> pour gagner du temps. Définissez votre objectif (RDV, Salon, Intérêt) pour un suivi automatique précis.
@@ -523,10 +542,18 @@ const App: React.FC = () => {
                       </div>
                       <div className="space-y-4">
                         <h4 className="text-indigo-400 text-[12px] font-black uppercase tracking-widest italic flex items-center gap-3">
-                          <Sparkles size={18} /> 04. Intelligence Artificielle
+                          <Sparkles size={18} /> 06. Intelligence Artificielle
                         </h4>
                         <p className="text-slate-400 text-sm font-medium leading-relaxed">
-                          Le <b className="text-white">Scanneur IA</b> extrait les données des photos. <b className="text-white">IA Enrich</b> qualifie vos leads avec des infos contextuelles. <b className="text-white">IA Voice</b> permet une interaction mains-libres.
+                          Le <b className="text-white">Scanneur IA</b> extrait les données des photos. <b className="text-white">IA Enrich</b> qualifie vos leads avec des infos contextuelles. Interaction mains-libres disponible.
+                        </p>
+                      </div>
+                      <div className="space-y-4">
+                        <h4 className="text-slate-400 text-[12px] font-black uppercase tracking-widest italic flex items-center gap-3">
+                          <FileText size={18} /> 07. Historique Interactions
+                        </h4>
+                        <p className="text-slate-400 text-sm font-medium leading-relaxed">
+                          Timeline visuelle de toutes les interactions (emails, appels, réunions, notes). Accessible depuis le profil de chaque contact pour un suivi complet.
                         </p>
                       </div>
                     </div>
@@ -537,7 +564,7 @@ const App: React.FC = () => {
                     </div>
                     <div className="flex items-center gap-4 px-6 py-4 bg-indigo-500/10 rounded-[24px] border border-indigo-500/20">
                       <Zap size={20} className="text-indigo-400" />
-                      <span className="text-[10px] font-black uppercase tracking-widest text-indigo-200">Version 15.1 Stable</span>
+                      <span className="text-[10px] font-black uppercase tracking-widest text-indigo-200">Version 2.0 Phase 1</span>
                     </div>
                   </div>
                 </div>
