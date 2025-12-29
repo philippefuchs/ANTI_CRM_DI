@@ -2,7 +2,9 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
 export const getGeminiClient = () => {
-  return new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const apiKey = (typeof process !== 'undefined' && (process.env.GEMINI_API_KEY || process.env.API_KEY)) || "";
+  if (!apiKey) console.warn("GEMINI_API_KEY is missing!");
+  return new GoogleGenAI({ apiKey });
 };
 
 // --- Extraction visuelle de carte de visite ---
@@ -10,7 +12,7 @@ export const extractContactFromImage = async (base64Image: string) => {
   const ai = getGeminiClient();
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
+      model: 'gemini-1.5-flash',
       contents: {
         parts: [
           { inlineData: { data: base64Image, mimeType: 'image/jpeg' } },
@@ -41,31 +43,15 @@ export const extractContactFromImage = async (base64Image: string) => {
   }
 };
 
-// --- Smart Data Enrichment (Contact Discovery Focus) ---
+// --- Smart Data Enrichment ---
 export const enrichContactFromText = async (text: string) => {
   const ai = getGeminiClient();
-  
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
+      model: 'gemini-1.5-flash',
       contents: `IDENTIFIER COORDONNÉES DIRECTES : "${text}"`,
       config: {
-        systemInstruction: `Tu es un Expert en Renseignement Commercial (OSINT). Ta mission est de trouver les coordonnées de contact DIRECTES (Email et Téléphone) d'une personne au sein d'une entreprise donnée.
-
-        PROTOCOLE DE RECHERCHE :
-        1. EXTRACTION : Identifie le Prénom, Nom et l'Entreprise cible.
-        2. RECHERCHE GOOGLE : Cherche spécifiquement l'email et le téléphone sur :
-           - Le site web officiel de la société (mentions légales, contact, équipe).
-           - Des annuaires professionnels, signatures de mail publiques, ou bases de données de presse.
-        3. PRÉDICTION D'EMAIL : Si l'email exact n'est pas trouvé mais que tu identifies le format utilisé par l'entreprise (ex: p.nom@entreprise.com), propose-le en précisant le degré de confiance.
-        4. TÉLÉPHONE : Cherche le numéro de bureau, le standard ou le mobile s'il est public.
-
-        STRICTE INTERDICTION :
-        - Ne cherche plus de lien LinkedIn. Ignore totalement les profils de réseaux sociaux.
-        - Ne propose que des informations vérifiables ou des patterns d'email probables.
-
-        FORMAT DE RÉPONSE : Retourne exclusivement l'objet JSON structuré.`,
-        tools: [{ googleSearch: {} }],
+        systemInstruction: `Tu es un Expert en Renseignement Commercial (OSINT). Ta mission est de trouver les coordonnées de contact DIRECTES (Email et Téléphone) d'une personne au sein d'une entreprise donnée. Ne propose que des informations vérifiables ou des patterns d'email probables. Retourne exclusivement l'objet JSON structuré.`,
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.OBJECT,
@@ -73,30 +59,21 @@ export const enrichContactFromText = async (text: string) => {
             firstName: { type: Type.STRING },
             lastName: { type: Type.STRING },
             company: { type: Type.STRING },
-            title: { type: Type.STRING, description: "Poste exact occupé" },
-            email: { type: Type.STRING, description: "Email professionnel (vérifié ou probable)" },
-            phone: { type: Type.STRING, description: "Numéro de téléphone direct ou standard" },
-            website: { type: Type.STRING, description: "Site web officiel de la société" },
+            title: { type: Type.STRING },
+            email: { type: Type.STRING },
+            phone: { type: Type.STRING },
+            website: { type: Type.STRING },
             sector: { type: Type.STRING },
-            notes: { type: Type.STRING, description: "Commentaires sur la source ou le format d'email détecté" },
-            matchConfidence: { 
-              type: Type.STRING, 
-              description: "High si email/tel trouvés, Medium si format d'email déduit, Low si info parcellaire" 
-            }
+            notes: { type: Type.STRING },
+            matchConfidence: { type: Type.STRING }
           },
           required: ["firstName", "lastName", "company"]
         }
       }
     });
 
-    const sources = response.candidates?.[0]?.groundingMetadata?.groundingChunks?.map((chunk: any) => ({
-      title: chunk.web?.title || "Source web",
-      uri: chunk.web?.uri
-    })).filter((s: any) => s.uri) || [];
-
     const data = JSON.parse(response.text || "{}");
-
-    return { data, sources };
+    return { data, sources: [] };
   } catch (e) {
     console.error("Enrichment error:", e);
     throw e;
@@ -106,7 +83,7 @@ export const enrichContactFromText = async (text: string) => {
 export const generateCampaignContent = async (prospectName: string, company: string, topic: string) => {
   const ai = getGeminiClient();
   const response = await ai.models.generateContent({
-    model: 'gemini-3-flash-preview',
+    model: 'gemini-1.5-flash',
     contents: `Write a professional personalized outreach email to ${prospectName} at ${company} about ${topic}. Keep it concise and persuasive.`,
   });
   return response.text;
@@ -115,7 +92,7 @@ export const generateCampaignContent = async (prospectName: string, company: str
 export const editProspectProfileImage = async (base64Image: string, prompt: string) => {
   const ai = getGeminiClient();
   const response = await ai.models.generateContent({
-    model: 'gemini-2.5-flash-image',
+    model: 'gemini-1.5-flash',
     contents: {
       parts: [
         { inlineData: { data: base64Image, mimeType: 'image/png' } },

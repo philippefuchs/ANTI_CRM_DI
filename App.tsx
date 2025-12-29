@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
-  BarChart3, Settings, Mail, Mic, Image as ImageIcon, Cpu, Activity, RefreshCw, Cloud, Link2, ShieldAlert, Copy, Save, Database, Upload, Trash2, HelpCircle, ExternalLink, AlertCircle, Check, Terminal, Code, Users, FileSpreadsheet, Zap, Scan, Key, Palette, Sparkles, Globe
+  BarChart3, Settings, Mail, Mic, Image as ImageIcon, Cpu, Activity, RefreshCw, Cloud, Link2, ShieldAlert, Copy, Save, Database, Upload, Trash2, HelpCircle, ExternalLink, AlertCircle, Check, Terminal, Code, Users, FileSpreadsheet, Zap, Scan, Key, Palette, Sparkles, Globe, BookOpen
 } from 'lucide-react';
 import Dashboard from './components/Dashboard';
 import ContactManager from './components/ContactManager';
@@ -11,9 +11,10 @@ import ProfileImageEditor from './components/ProfileImageEditor';
 import ReportingManager from './components/ReportingManager';
 import DataEnricher from './components/DataEnricher';
 import CardScanner from './components/CardScanner';
+import TemplateManager from './components/TemplateManager';
 import { supabase, isSupabaseConfigured, saveSupabaseConfig } from './services/supabase';
 
-type View = 'dashboard' | 'database' | 'members' | 'campaigns' | 'voice' | 'images' | 'reporting' | 'enricher' | 'scanner' | 'settings';
+type View = 'dashboard' | 'database' | 'members' | 'campaigns' | 'voice' | 'images' | 'reporting' | 'enricher' | 'scanner' | 'settings' | 'templates';
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<View>(isSupabaseConfigured() ? 'dashboard' : 'settings');
@@ -204,6 +205,7 @@ const App: React.FC = () => {
     { id: 'database', label: 'Prospects', icon: <Cloud size={20} />, color: 'from-indigo-500 to-blue-600' },
     { id: 'members', label: 'Membres', icon: <Users size={20} />, color: 'from-emerald-400 to-teal-600' },
     { id: 'campaigns', label: 'Campagnes', icon: <Mail size={20} />, color: 'from-rose-500 to-pink-600' },
+    { id: 'templates', label: 'E-mail Library', icon: <BookOpen size={20} />, color: 'from-amber-400 to-orange-500' },
     { id: 'reporting', label: 'Export', icon: <FileSpreadsheet size={20} />, color: 'from-slate-400 to-slate-600' },
     { id: 'voice', label: 'IA Voice', icon: <Mic size={20} />, color: 'from-orange-400 to-red-500' },
     { id: 'images', label: 'Studio', icon: <ImageIcon size={20} />, color: 'from-cyan-400 to-blue-500' },
@@ -324,6 +326,7 @@ const App: React.FC = () => {
             {currentView === 'database' && <ContactManager category="prospect" />}
             {currentView === 'members' && <ContactManager category="member" />}
             {currentView === 'campaigns' && <CampaignManager />}
+            {currentView === 'templates' && <TemplateManager />}
             {currentView === 'reporting' && <ReportingManager />}
             {currentView === 'voice' && <VoiceAssistant />}
             {currentView === 'images' && <ProfileImageEditor />}

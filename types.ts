@@ -53,3 +53,12 @@ export interface Campaign {
   goal?: 'Meeting' | 'Positive' | 'Event';
   outcomes?: Record<string, OutcomeDetail>;
 }
+
+export interface EmailTemplate {
+  id: string;
+  name: string;
+  subject: string;
+  body: string;
+  category?: string;
+  createdAt: string;
+}
