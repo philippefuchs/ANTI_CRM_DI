@@ -12,7 +12,7 @@ export const extractContactFromImage = async (base64Image: string) => {
   const ai = getGeminiClient();
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-1.5-flash',
+      model: 'gemini-2.0-flash',
       contents: {
         parts: [
           { inlineData: { data: base64Image, mimeType: 'image/jpeg' } },
@@ -48,7 +48,7 @@ export const enrichContactFromText = async (text: string) => {
   const ai = getGeminiClient();
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-1.5-flash',
+      model: 'gemini-2.0-flash',
       contents: `IDENTIFIER COORDONNÉES DIRECTES : "${text}"`,
       config: {
         systemInstruction: `Tu es un Expert en Renseignement Commercial (OSINT). Ta mission est de trouver les coordonnées de contact DIRECTES (Email et Téléphone) d'une personne au sein d'une entreprise donnée. Ne propose que des informations vérifiables ou des patterns d'email probables. Retourne exclusivement l'objet JSON structuré.`,
@@ -131,3 +131,73 @@ export async function decodeAudioData(data: Uint8Array, ctx: AudioContext, sampl
   }
   return buffer;
 }
+
+// --- AI Lead Scoring ---
+export const scoreLead = async (contact: any) => {
+  const ai = getGeminiClient();
+  try {
+    const prompt = `
+      Tu es un Expert Sales B2B & Lead Scoring.
+      Analyse ce prospect et attribue une note de 0 à 100 (Score) sur son potentiel de conversion.
+      
+      CRITÈRES DE SCORING :
+      - POSTE (40%) : C-Level/VP/Director sont prioritaires (High score). Stagiaire/Assistant (Low score).
+      - SECTEUR & TAILLE (30%) : Pertinence du secteur et taille estimée.
+      - DONNÉES (20%) : Email pro ? Téléphone ? (Plus c'est complet, mieux c'est).
+      - NOTES (10%) : Mots clés "urgent", "budget", "projet" dans les notes.
+
+      PROSPECT :
+      Nom : ${contact.firstName} ${contact.lastName}
+      Poste : ${contact.title}
+      Société : ${contact.company}
+      Secteur : ${contact.sector}
+      Email : ${contact.email}
+      Notes : ${contact.notes}
+
+      FORMAT DE RÉPONSE JSON ATTENDU :
+      {
+        "score": number (0-100),
+        "reason": "Court explicatif de 15 mots max (ex: Décideur clé secteur Tech)"
+      }
+    `;
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.0-flash',
+      contents: `Analyse ce prospect : ${JSON.stringify(contact)}`,
+      config: {
+        systemInstruction: `Tu es un Expert Sales B2B & Lead Scoring Senior.
+        Ton rôle est d'évaluer le potentiel de conversion de ce prospect en analysant précisément :
+        1. POSTE : Décideurs (CEO, CTO, VP) = Score élevé. Assistant/Stagiaire = Score faible.
+        2. ENTREPISE : Taille et sérieux apparent.
+        3. LIENS : Présence d'un site web et d'un profil LinkedIn (gage de crédibilité).
+        4. COORDONNÉES : Email pro et téléphone.
+
+        FORMAT DE RÉPONSE JSON ATTENDU :
+        {
+          "score": number (0-100, entier uniquement),
+          "reason": "Une phrase courte (10 mots max) résumant le statut (ex: CEO, profil premium avec LinkedIn)",
+          "summary": "Un paragraphe détaillé (30-50 mots) expliquant les points forts et faibles du profil pour le CRM."
+        }`,
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            score: { type: Type.NUMBER },
+            reason: { type: Type.STRING },
+            summary: { type: Type.STRING }
+          }
+        }
+      }
+    });
+
+    const result = JSON.parse(response.text || "{}");
+    return {
+      score: typeof result.score === 'number' ? Math.round(result.score) : 0,
+      reason: result.reason || "Pas de raison fournie",
+      summary: result.summary || "Analyse automatique effectuée."
+    };
+  } catch (e) {
+    console.error("Scoring error:", e);
+    return { score: 0, reason: "Erreur analyse" };
+  }
+};

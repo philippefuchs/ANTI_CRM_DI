@@ -77,20 +77,53 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({ isOpen, onClose, co
         };
 
         const attemptSave = async (payload: any): Promise<{ success: boolean; error?: any }> => {
+            if (!supabase) return { success: false, error: "Database not configured" };
+
             let query: any = supabase.from('contacts');
-            if (contact && contact.id !== 'new') {
+            const isUpdate = contact && contact.id !== 'new';
+
+            if (isUpdate) {
                 const sId = String(contact.id);
                 const idToUse = (sId.includes('-') || isNaN(Number(sId))) ? sId : Number(sId);
                 query = query.update(payload).eq('id', idToUse);
             } else {
+                // For NEW contacts, we try to let Supabase generate the ID first
                 query = query.insert([payload]);
             }
 
             const { error } = await query;
             if (!error) return { success: true };
 
+            // Fallback strategy if columns are missing
             const msg = error.message || "";
-            if (msg.includes("invalid input syntax for type uuid") && contact?.id === 'new') {
+            if (msg.includes("column") || error.code === 'PGRST204' || msg.includes("structure")) {
+                console.warn("Retrying save with data fallback...");
+                const fallbackPayload = {
+                    id: isUpdate ? undefined : (msg.includes("uuid") ? crypto.randomUUID() : undefined),
+                    first_name: payload.first_name,
+                    last_name: payload.last_name,
+                    email: payload.email,
+                    company: payload.company,
+                    category: payload.category,
+                    data: { ...payload }
+                };
+
+                let retryQuery: any = supabase.from('contacts');
+                if (isUpdate) {
+                    const sId = String(contact.id);
+                    const idToUse = (sId.includes('-') || isNaN(Number(sId))) ? sId : Number(sId);
+                    retryQuery = retryQuery.update(fallbackPayload).eq('id', idToUse);
+                } else {
+                    retryQuery = retryQuery.insert([fallbackPayload]);
+                }
+
+                const { error: error2 } = await retryQuery;
+                if (!error2) return { success: true };
+                return { success: false, error: error2 };
+            }
+
+            // UUID fallback for new contacts
+            if (msg.includes("uuid") && !isUpdate) {
                 return attemptSave({ ...payload, id: crypto.randomUUID() });
             }
 
@@ -102,6 +135,7 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({ isOpen, onClose, co
             if (result.error) throw result.error;
             showToast('Contact enregistré avec succès', 'success');
             onSuccess();
+            window.dispatchEvent(new CustomEvent('contact-updated')); // For real-time updates elsewhere if needed
             onClose();
         } catch (err: any) {
             console.error("Save Error:", err);
@@ -189,7 +223,17 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({ isOpen, onClose, co
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-[9px] font-black uppercase text-slate-400 ml-4">Société</label>
-                                    <input required name="company" defaultValue={contact.company} className="w-full px-6 py-4 bg-slate-50 rounded-2xl outline-none font-black italic text-sm uppercase" placeholder="CORP INC." />
+                                    <input required name="company" defaultValue={contact.company} className="w-full px-6 py-4 bg-slate-50 rounded-2xl outline-none font-black italic text-sm uppercase shadow-sm focus:ring-4 focus:ring-emerald-500/5 transition-all" placeholder="CORP INC." />
+                                </div>
+                                <div className="grid grid-cols-2 gap-6">
+                                    <div className="space-y-2">
+                                        <label className="text-[9px] font-black uppercase text-slate-400 ml-4">Secteur</label>
+                                        <input name="sector" defaultValue={contact.sector} className="w-full px-6 py-4 bg-slate-50 rounded-2xl outline-none font-black italic text-xs uppercase" placeholder="TECH, RETAIL..." />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[9px] font-black uppercase text-slate-400 ml-4">Site Web</label>
+                                        <input name="website" defaultValue={contact.website} className="w-full px-6 py-4 bg-slate-50 rounded-2xl outline-none font-black italic text-xs uppercase" placeholder="WWW.CORP.COM" />
+                                    </div>
                                 </div>
                             </div>
 
@@ -200,7 +244,21 @@ const ContactFormModal: React.FC<ContactFormModalProps> = ({ isOpen, onClose, co
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-[9px] font-black uppercase text-slate-400 ml-4">Email</label>
-                                    <input type="email" name="email" defaultValue={contact.email} className="w-full px-6 py-4 bg-slate-50 rounded-2xl outline-none font-black text-xs" placeholder="MAIL@PRO.COM" />
+                                    <input type="email" name="email" defaultValue={contact.email} className="w-full px-6 py-4 bg-slate-50 rounded-2xl outline-none font-black text-xs shadow-sm focus:ring-4 focus:ring-rose-500/5 transition-all" placeholder="MAIL@PRO.COM" />
+                                </div>
+                                <div className="grid grid-cols-2 gap-6">
+                                    <div className="space-y-2">
+                                        <label className="text-[9px] font-black uppercase text-slate-400 ml-4">Téléphone</label>
+                                        <input name="phone" defaultValue={contact.phone} className="w-full px-6 py-4 bg-slate-50 rounded-2xl outline-none font-black italic text-xs uppercase" placeholder="06..." />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[9px] font-black uppercase text-slate-400 ml-4">LinkedIn</label>
+                                        <input name="linkedin_url" defaultValue={contact.linkedinUrl} className="w-full px-6 py-4 bg-slate-50 rounded-2xl outline-none font-black italic text-xs uppercase" placeholder="LI/IN/USER..." />
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[9px] font-black uppercase text-slate-400 ml-4">Adresse</label>
+                                    <input name="address" defaultValue={contact.address} className="w-full px-6 py-4 bg-slate-50 rounded-2xl outline-none font-black italic text-xs uppercase" placeholder="RUE... VILLE..." />
                                 </div>
                             </div>
 

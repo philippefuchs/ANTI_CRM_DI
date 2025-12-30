@@ -92,6 +92,49 @@ const ContactManager: React.FC<ContactManagerProps> = ({ category }) => {
     }
   };
 
+  const handleScoreContact = async (contact: Contact) => {
+    if (!supabase) return;
+    const toastId = showToast("Analyse IA en cours...", "info", 3000);
+    try {
+      // Utilisation du service centralisé
+      const { scoreLead } = await import('../services/geminiService');
+
+      const result = await scoreLead(contact);
+
+      const scoredResult = {
+        score: result.score,
+        reason: result.reason,
+        summary: result.summary
+      };
+
+      // Update Supabase
+      const { error } = await supabase
+        .from('contacts')
+        .update({
+          score: scoredResult.score,
+          score_reason: scoredResult.reason
+        })
+        .eq('id', contact.id);
+
+      if (error) throw error;
+
+      // Ajouter l'analyse dans l'historique (interactions)
+      await supabase
+        .from('interactions')
+        .insert([{
+          contact_id: contact.id,
+          type: 'note',
+          content: `🤖 ANALYSE IA (Score: ${scoredResult.score}/100)\n\n${scoredResult.summary}`
+        }]);
+
+      showToast(`Scoring terminé : ${result.score}/100`, 'success');
+      fetchContacts(); // Refresh list
+    } catch (err: any) {
+      console.error(err);
+      showToast("Erreur scoring : " + stringifyError(err), 'error');
+    }
+  };
+
   const filteredContacts = useMemo(() => {
     const s = searchTerm.toLowerCase();
     return contacts.filter(c =>
@@ -157,6 +200,7 @@ const ContactManager: React.FC<ContactManagerProps> = ({ category }) => {
           themeColor={themeColor}
           onEdit={(c) => { setEditingContact(c); setIsModalOpen(true); }}
           onDelete={executeDelete}
+          onScore={handleScoreContact}
         />
       </div>
 

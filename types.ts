@@ -26,6 +26,8 @@ export interface Contact {
   createdAt: string;
   lastInteraction?: string;
   category: 'prospect' | 'member';
+  score?: number;
+  scoreReason?: string;
 }
 
 export type Prospect = Contact;
