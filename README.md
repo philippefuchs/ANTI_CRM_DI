@@ -1,20 +1,41 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# LeadGen AI Pro
 
-# Run and deploy your AI Studio app
+Une application CRM moderne et performante pour la gestion de prospects et de membres, propulsée par l'IA.
 
-This contains everything you need to run your app locally.
+## Fonctionnalités Clés
+- **Gestion de Contacts** : Prospects et Membres, avec import CSV et dédoublonnage.
+- **Enrichissement IA** : Complétion automatique des profils via Gemini.
+- **Communication** : Templates d'emails et gestion de campagnes.
+- **Organisation** : Pipeline Kanban, Calendrier et Rappels.
 
-View your app in AI Studio: https://ai.studio/apps/drive/19iCW2b23mPKUh6S7Q2newS6dKH4cD9qE
+## Installation Locale
 
-## Run Locally
+1.  **Prérequis** : Node.js (v18+) installé.
+2.  **Installation des dépendances** :
+    ```bash
+    npm install
+    ```
+3.  **Configuration** :
+    Créez un fichier `.env.local` à la racine avec vos clés API (voir `.env.example` si disponible ou demandez à l'administrateur).
+    ```env
+    VITE_SUPABASE_URL=votre_url_supabase
+    VITE_SUPABASE_KEY=votre_cle_publique
+    GEMINI_API_KEY=votre_cle_gemini
+    ```
+4.  **Lancement** :
+    ```bash
+    npm run dev
+    ```
+    L'application sera accessible sur `http://localhost:3000`.
 
-**Prerequisites:**  Node.js
+## Déploiement
 
+Pour déployer sur Vercel :
+1.  Installez Vercel CLI : `npm i -g vercel`
+2.  Connectez-vous : `vercel login`
+3.  Déployez : `vercel --prod`
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## Architecture
+- **Frontend** : React, Vite, TailwindCSS
+- **Backend** : Supabase (Base de données, Auth)
+- **Icônes** : Lucide React

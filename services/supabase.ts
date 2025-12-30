@@ -15,11 +15,14 @@ const getSupabaseConfig = () => {
   } catch (e) {
     console.error("Error loading Supabase config from localStorage", e);
   }
-  // Valeurs par défaut
-  return { 
-    url: 'https://kdmdxljdegphjfgbxddd.supabase.co', 
-    key: 'sb_publishable_xovJYj2nO1unZkskbQAhkQ_IrOdIB2V' 
+  // Valeurs par défaut depuis les variables d'environnement
+  const output = {
+    url: import.meta.env.VITE_SUPABASE_URL || '',
+    key: import.meta.env.VITE_SUPABASE_KEY || ''
   };
+  console.log("Supabase Config Debug:", output);
+  console.log("Meta Env:", import.meta.env);
+  return output;
 };
 
 const config = getSupabaseConfig();
@@ -35,16 +38,16 @@ const isValidUrl = (urlString: string) => {
 };
 
 // Initialize Supabase only if URL is valid and key is present
-export const supabase = (config.url && isValidUrl(config.url) && config.key) 
+export const supabase = (config.url && isValidUrl(config.url) && config.key)
   ? createClient(config.url, config.key, {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-      },
-      global: {
-        headers: { 'x-application-name': 'leadgen-ai-pro' },
-      },
-    })
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+    },
+    global: {
+      headers: { 'x-application-name': 'leadgen-ai-pro' },
+    },
+  })
   : null;
 
 export const isSupabaseConfigured = () => !!supabase;
@@ -52,5 +55,5 @@ export const isSupabaseConfigured = () => !!supabase;
 export const saveSupabaseConfig = (url: string, key: string) => {
   const cleanUrl = url.trim().replace(/\/$/, "");
   localStorage.setItem('leadgen_supabase_config', JSON.stringify({ url: cleanUrl, key: key.trim() }));
-  window.location.reload(); 
+  window.location.reload();
 };
