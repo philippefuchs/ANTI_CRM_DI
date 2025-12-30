@@ -14,19 +14,33 @@ const Dashboard: React.FC = () => {
   const [lastSync, setLastSync] = useState<string>(new Date().toLocaleTimeString());
 
   const loadData = useCallback(async () => {
-    if (!supabase) return;
+    if (!supabase) {
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     setIsChartReady(false);
+
+    // Safety timeout: stop loading after 8 seconds anyway
+    const safetyTimer = setTimeout(() => {
+      setLoading(false);
+    }, 8000);
+
     try {
-      const { data: contactsData } = await supabase.from('contacts').select('*');
-      const { data: campaignsData } = await supabase.from('campaigns').select('*');
+      const { data: contactsData, error: contactsErr } = await supabase.from('contacts').select('*');
+      const { data: campaignsData, error: campaignsErr } = await supabase.from('campaigns').select('*');
+
+      if (contactsErr) console.warn("Supabase contacts error:", contactsErr);
+      if (campaignsErr) console.warn("Supabase campaigns error:", campaignsErr);
 
       if (contactsData) {
         const normalizedContacts = (contactsData as any[]).map(c => ({
           ...c,
           id: String(c.id),
           category: (c.category || 'prospect').toString().toLowerCase().trim(),
-          status: (c.status || '').toString().trim()
+          status: (c.status || '').toString().trim(),
+          sector: c.sector || c.data?.sector || 'Inconnu'
         }));
         setContacts(normalizedContacts);
       } else {
@@ -47,6 +61,7 @@ const Dashboard: React.FC = () => {
     } catch (error) {
       console.error("Erreur analytics:", error);
     } finally {
+      clearTimeout(safetyTimer);
       setLoading(false);
     }
   }, []);
